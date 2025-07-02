@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
+            Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{B8F3CA26-76F5-447D-BCB9-8C383A17A1CE}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>XazeAPI</RootNamespace>
+        <AssemblyName>XazeAPI</AssemblyName>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+        <LangVersion>latest</LangVersion>
+        <FileAlignment>512</FileAlignment>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="0Harmony, Version=2.3.6.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>packages\Lib.Harmony.2.3.6\lib\net48\0Harmony.dll</HintPath>
+        </Reference>
+        <Reference Include="Assembly-CSharp">
+          <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\Assembly-CSharp-Publicized.dll</HintPath>
+        </Reference>
+        <Reference Include="Assembly-CSharp-firstpass">
+          <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\Assembly-CSharp-firstpass-Publicized.dll</HintPath>
+        </Reference>
+        <Reference Include="CommandSystem.Core">
+          <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\CommandSystem.Core-Publicized.dll</HintPath>
+        </Reference>
+        <Reference Include="LabApi">
+          <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\LabApi-Publicized.dll</HintPath>
+        </Reference>
+        <Reference Include="Mirror">
+          <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\Mirror-Publicized.dll</HintPath>
+        </Reference>
+        <Reference Include="mscorlib" />
+        <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+          <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+        </Reference>
+        <Reference Include="NorthwoodLib">
+          <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\NorthwoodLib-Publicized.dll</HintPath>
+        </Reference>
+        <Reference Include="NVorbis">
+          <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\NVorbis.dll</HintPath>
+        </Reference>
+        <Reference Include="Pooling">
+          <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\Pooling-Publicized.dll</HintPath>
+        </Reference>
+        <Reference Include="ProjectMER">
+          <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\ProjectMER.dll</HintPath>
+        </Reference>
+        <Reference Include="SCPSLAudioApi">
+          <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\SCPSLAudioApi.dll</HintPath>
+        </Reference>
+        <Reference Include="Snake">
+          <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\Snake-Publicized.dll</HintPath>
+        </Reference>
+        <Reference Include="System"/>
+        <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+          <HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
+        </Reference>
+        <Reference Include="System.ComponentModel.Composition" />
+        <Reference Include="System.Core"/>
+        <Reference Include="System.Data"/>
+        <Reference Include="System.Drawing" />
+        <Reference Include="System.Drawing.Common, Version=10.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+          <HintPath>packages\System.Drawing.Common.10.0.0-preview.5.25277.114\lib\net462\System.Drawing.Common.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Drawing.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <HintPath>packages\System.Drawing.Primitives.4.3.0\lib\net45\System.Drawing.Primitives.dll</HintPath>
+        </Reference>
+        <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <HintPath>packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+          <HintPath>packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Net.Http, Version=4.1.1.3, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <HintPath>packages\System.Net.Http.4.3.4\lib\net46\System.Net.Http.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Numerics" />
+        <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Runtime, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <HintPath>packages\System.Runtime.4.3.0\lib\net462\System.Runtime.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <HintPath>packages\System.Security.Cryptography.Algorithms.4.3.0\lib\net463\System.Security.Cryptography.Algorithms.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <HintPath>packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <HintPath>packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <HintPath>packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Xml"/>
+        <Reference Include="Unity.TextMeshPro">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.AudioModule">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.PhysicsModule">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UnityWebRequestModule">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UnityWebRequestWWWModule">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+        </Reference>
+        <Reference Include="YamlDotNet, Version=11.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
+          <HintPath>packages\YamlDotNet.11.0.1\lib\net45\YamlDotNet.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="API\AudioCore\FakePlayers\AudioManager.cs" />
+        <Compile Include="API\AudioCore\FakePlayers\CustomAudioPlayer.cs" />
+        <Compile Include="API\AudioCore\FakePlayers\FakeConnection.cs" />
+        <Compile Include="API\AudioCore\Speakers\AudioPlayer.cs" />
+        <Compile Include="API\AudioCore\Speakers\CustomSpeakerAudio.cs" />
+        <Compile Include="API\AudioCore\Speakers\CustomSpeakerManager.cs" />
+        <Compile Include="API\AudioCore\Speakers\Models\AudioClipData.cs" />
+        <Compile Include="API\AudioCore\Speakers\Models\AudioClipPlayback.cs" />
+        <Compile Include="API\AudioCore\Speakers\Models\AudioClipStorage.cs" />
+        <Compile Include="API\CustomPlayer.cs" />
+        <Compile Include="API\DiscordWebhook\Classes\AuthorBuilder.cs" />
+        <Compile Include="API\DiscordWebhook\Classes\EmbedBuilder.cs" />
+        <Compile Include="API\DiscordWebhook\Classes\FieldBuilder.cs" />
+        <Compile Include="API\DiscordWebhook\Classes\MessageBuilder.cs" />
+        <Compile Include="API\DiscordWebhook\WebhookTest.cs" />
+        <Compile Include="API\Enums\CustomFaction.cs" />
+        <Compile Include="API\Enums\CustomTeam.cs" />
+        <Compile Include="API\Enums\DamageType.cs" />
+        <Compile Include="API\Enums\MVPInfoType.cs" />
+        <Compile Include="API\Events\PlayerHearingFakePlayer.cs" />
+        <Compile Include="API\Events\XazeEvents.cs" />
+        <Compile Include="API\Extensions\ColorExtensions.cs" />
+        <Compile Include="API\Extensions\DictionaryExtensions.cs" />
+        <Compile Include="API\Extensions\FirearmExtensions.cs" />
+        <Compile Include="API\Extensions\PlayerExtensions.cs" />
+        <Compile Include="API\Extensions\RoleExtensions.cs" />
+        <Compile Include="API\Extensions\TeamAndFactionExtensions.cs" />
+        <Compile Include="API\Extensions\WaveExtensions.cs" />
+        <Compile Include="API\Helpers\CustomKeycardHandler.cs" />
+        <Compile Include="API\Helpers\DisguiseHelper.cs" />
+        <Compile Include="API\Helpers\ErrorHelper.cs" />
+        <Compile Include="API\Helpers\FacilityHandler.cs" />
+        <Compile Include="API\Helpers\FirearmHandler.cs" />
+        <Compile Include="API\Helpers\HealthHandler.cs" />
+        <Compile Include="API\Helpers\HintHandler.cs" />
+        <Compile Include="API\Helpers\MainHelper.cs" />
+        <Compile Include="API\Helpers\ServerRolesHelper.cs" />
+        <Compile Include="API\Helpers\TextToyHelper.cs" />
+        <Compile Include="API\Interfaces\ICustomGlow.cs" />
+        <Compile Include="API\Interfaces\IFakeEvent.cs" />
+        <Compile Include="API\LightSystem.cs" />
+        <Compile Include="API\Logging.cs" />
+        <Compile Include="API\Stats\Player\CustomHealthStat.cs" />
+        <Compile Include="API\Stats\Player\PlayerBaseStat.cs" />
+        <Compile Include="API\Stats\Player\PlayerDeathStat.cs" />
+        <Compile Include="API\Stats\Player\PlayerKillStat.cs" />
+        <Compile Include="API\Stats\PluginStatistics.cs" />
+        <Compile Include="API\Structures\CassieAnnouncement.cs" />
+        <Compile Include="API\Structures\DisguisedPlayer.cs" />
+        <Compile Include="API\Structures\FakePlayerCustomHearSoundCheck.cs" />
+        <Compile Include="API\Structures\MVPInfoStruct.cs" />
+        <Compile Include="API\XazeEventHandler.cs" />
+        <Compile Include="MainStaticVars.cs" />
+        <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="RueI\GlobalSuppressions.cs" />
+        <Compile Include="RueI\Main.cs" />
+        <Compile Include="RueI\RueI\CharacterLengths.cs" />
+        <Compile Include="RueI\RueI\Constants.cs" />
+        <Compile Include="RueI\RueI\Displays\AutoElements\AutoElement.cs" />
+        <Compile Include="RueI\RueI\Displays\AutoElements\Roles.cs" />
+        <Compile Include="RueI\RueI\Displays\Display.cs" />
+        <Compile Include="RueI\RueI\Displays\DisplayBase.cs" />
+        <Compile Include="RueI\RueI\Displays\DisplayCore.cs" />
+        <Compile Include="RueI\RueI\Displays\ElemCombiner.cs" />
+        <Compile Include="RueI\RueI\Displays\ElemReference.cs" />
+        <Compile Include="RueI\RueI\Displays\Interfaces\IElementContainer.cs" />
+        <Compile Include="RueI\RueI\Displays\Interfaces\Roles.cs" />
+        <Compile Include="RueI\RueI\Displays\Scheduling\Cooldown.cs" />
+        <Compile Include="RueI\RueI\Displays\Scheduling\JobToken.cs" />
+        <Compile Include="RueI\RueI\Displays\Scheduling\RateLimiter.cs" />
+        <Compile Include="RueI\RueI\Displays\Scheduling\Records\BatchJob.cs" />
+        <Compile Include="RueI\RueI\Displays\Scheduling\ScheduledJob.cs" />
+        <Compile Include="RueI\RueI\Displays\Scheduling\Scheduler.cs" />
+        <Compile Include="RueI\RueI\Displays\Scheduling\TimedElemRef.cs" />
+        <Compile Include="RueI\RueI\Displays\Screen.cs" />
+        <Compile Include="RueI\RueI\Displays\ScreenDisplay.cs" />
+        <Compile Include="RueI\RueI\Elements\Delegates\GetContent.cs" />
+        <Compile Include="RueI\RueI\Elements\DynamicElement.cs" />
+        <Compile Include="RueI\RueI\Elements\Element.cs" />
+        <Compile Include="RueI\RueI\Elements\Enums\ElementOptions.cs" />
+        <Compile Include="RueI\RueI\Elements\FixedElement.cs" />
+        <Compile Include="RueI\RueI\Elements\Interfaces\ISettable.cs" />
+        <Compile Include="RueI\RueI\Elements\Interfaces\ISettableOptions.cs" />
+        <Compile Include="RueI\RueI\Elements\SetElement.cs" />
+        <Compile Include="RueI\RueI\Events\EventArgs\DisplayUpdatedEventArgs.cs" />
+        <Compile Include="RueI\RueI\Events\Events.cs" />
+        <Compile Include="RueI\RueI\Extensions\DisplayCoreExtensions.cs" />
+        <Compile Include="RueI\RueI\Extensions\ElementHelpers.cs" />
+        <Compile Include="RueI\RueI\Extensions\EnumExtensions.cs" />
+        <Compile Include="RueI\RueI\Extensions\HintBuilding.cs" />
+        <Compile Include="RueI\RueI\Extensions\IComparableExtensions.cs" />
+        <Compile Include="RueI\RueI\Extensions\IEnumerableExtensions.cs" />
+        <Compile Include="RueI\RueI\Extensions\ReflectionHelpers.cs" />
+        <Compile Include="RueI\RueI\Extensions\UniversalExtensions.cs" />
+        <Compile Include="RueI\RueI\Parsing\Enums\CaseStyle.cs" />
+        <Compile Include="RueI\RueI\Parsing\Enums\ColorStyle.cs" />
+        <Compile Include="RueI\RueI\Parsing\Enums\MeasurementUnit.cs" />
+        <Compile Include="RueI\RueI\Parsing\Enums\ParserState.cs" />
+        <Compile Include="RueI\RueI\Parsing\Enums\TagStyle.cs" />
+        <Compile Include="RueI\RueI\Parsing\Parser.cs" />
+        <Compile Include="RueI\RueI\Parsing\ParserBuilder.cs" />
+        <Compile Include="RueI\RueI\Parsing\ParserContext.cs" />
+        <Compile Include="RueI\RueI\Parsing\Records\MeasurementInfo.cs" />
+        <Compile Include="RueI\RueI\Parsing\Records\ParsedData.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ClosingTag{T}.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\AlignTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\AlphaTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\BoldTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\BrTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CaseTags.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseAlignTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseAlphaTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseBoldTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseColorTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseCSpace.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseIndent.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseItalicsTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseLineHeightTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseLineIndentTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseMarkTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseNobrTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseNoparseTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseRotateTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseScaleTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseSizeTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseStrikethroughTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseSubscriptTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseSuperscriptTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseUnderlineTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CloseVOffsetTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\ColorTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\CSpaceTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\IndentTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\ItalicsAngleTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\ItalicsTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\LineHeightTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\LineIndentTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\MarginTags.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\MarkTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\NobrTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\NoparseTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\PageTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\PosTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\RotateTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\ScaleTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\SizeTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\SpaceTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\StrikethroughTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\SubscriptTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\SuperscriptTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\UnderlineTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\ConcreteTags\VOffsetTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\MeasurementTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\NoParamsTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\RichTextTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\RichTextTagAttribute.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\SharedTag.cs" />
+        <Compile Include="RueI\RueI\Parsing\Tags\TagHelpers.cs" />
+        <Compile Include="RueI\RueI\Parsing\TextInfo.cs" />
+        <Compile Include="RueI\RueI\Patches\HintPatch.cs" />
+        <Compile Include="RueI\RueI\Patches\PatchHelper.cs" />
+        <Compile Include="RueI\RueI\Ruetility.cs" />
+        <Compile Include="RueI\UnityAlternative.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="App.config" />
+      <None Include="packages.config" />
+    </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Include="API\AudioCore\Audios\BhopSong.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\DeathGamble.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\HerobustMove.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\Hostiles.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\Infernal.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\JoJoOverture.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\Kalinka.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme1.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme2.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme3.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme4.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme5.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme6.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme7.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme8.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LunarAbyss.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\MineBeep.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\NeverSeeItComing.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\NewDimensions.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\PersonnelSpawn.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\Seavolution.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\SeismicCharge.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\YouSpinMe.ogg" />
+      <Content Include="RueI\RueI.csproj" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+
+</Project>
