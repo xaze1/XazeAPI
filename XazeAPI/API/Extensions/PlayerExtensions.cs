@@ -440,61 +440,6 @@ namespace XazeAPI.API.Extensions
             handler.StartVelocity.y = 2f;
             hub.playerStats.KillPlayer(handler);
         }
-
-        /*
-        public static bool IsPatreon(this ReferenceHub plr)
-        {
-            string badgeKey = ServerStatic.PermissionsHandler.Members.FirstOrDefault(g => g.Key == plr.authManager.UserId).Value;
-            if (badgeKey == null) return false;
-            return Plugin.PatreonGroups.ContainsKey(badgeKey) || plr.serverRoles.AdminChatPerms;
-        }
-        
-        public static string GetGroupKey(this ReferenceHub plr)
-        {
-            return ServerStatic.PermissionsHandler.Members.FirstOrDefault(g => g.Key == plr.authManager.UserId).Value;
-        }
-        
-        public static int GetPatreonTier(this ReferenceHub plr)
-        {
-            string groupKey = plr.GetGroupKey();
-
-            if (plr.serverRoles.AdminChatPerms)
-            {
-                return 5;
-            }
-
-            if (!Plugin.PatreonGroups.TryGetValue(groupKey, out int value))
-            {
-                return 0;
-            }
-
-            return value;
-        }
-
-        public static bool IsPatreon(this ICommandSender sender, out int PatreonTier)
-        {
-            if (sender is not PlayerCommandSender cmdSender)
-            {
-                PatreonTier = 0;
-                return false;
-            }
-
-            if (cmdSender.ReferenceHub.serverRoles.AdminChatPerms)
-            {
-                PatreonTier = 5;
-                return true;
-            }
-
-            if (!cmdSender.ReferenceHub.IsPatreon())
-            {
-                PatreonTier = 0;
-                return false;
-            }
-
-            PatreonTier = cmdSender.ReferenceHub.GetPatreonTier();
-            return true;
-        }
-        */
         
         public static void RemoveItems(this Player plr, ItemType type)
         {
