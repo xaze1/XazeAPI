@@ -10,7 +10,7 @@ namespace XazeAPI.API
     {
         public static void Info(string message)
         {
-            Logger.Raw(Logger.FormatLog(message, Logger.InfoPrefix, Assembly.GetCallingAssembly()), System.ConsoleColor.Cyan);
+            Raw(FormatLog(message, Logger.InfoPrefix, Assembly.GetCallingAssembly()), ConsoleColor.Cyan);
         }
 
         public static void Debug(string message, bool canBeSend = true)
@@ -20,22 +20,32 @@ namespace XazeAPI.API
                 return;
             }
 
-            Logger.Raw(Logger.FormatLog(message, Logger.DebugPrefix, Assembly.GetCallingAssembly()), System.ConsoleColor.DarkMagenta);
+            Raw(FormatLog(message, Logger.DebugPrefix, Assembly.GetCallingAssembly()), ConsoleColor.DarkMagenta);
         }
 
         public static void Warn(string message)
         {
-            Logger.Raw(Logger.FormatLog(message, Logger.WarnPrefix, Assembly.GetCallingAssembly()), System.ConsoleColor.Yellow);
+            Raw(FormatLog(message, Logger.WarnPrefix, Assembly.GetCallingAssembly()), ConsoleColor.Yellow);
         }
 
         public static void Error(string message)
         {
-            Logger.Raw(Logger.FormatLog(message, Logger.ErrorPrefix, Assembly.GetCallingAssembly()), System.ConsoleColor.Red);
+            Raw(FormatLog(message, Logger.ErrorPrefix, Assembly.GetCallingAssembly()), ConsoleColor.Red);
         }
 
         public static void ServerLog(string message, ConsoleColor color)
         {
-            Logger.Raw($"[{Assembly.GetCallingAssembly().GetName().Name}] {message}", color);
+            Raw($"[{Assembly.GetCallingAssembly().GetName().Name}] {message}", color);
+        }
+        
+        public static string FormatLog(object message, string prefix, Assembly assembly)
+        {
+            return $"[{prefix}] [{Logger.FormatAssemblyName(assembly)}] {message}";
+        }
+        
+        public static void Raw(string message, ConsoleColor color)
+        {
+            ServerConsole.AddLog(message, color);
         }
     }
 }
