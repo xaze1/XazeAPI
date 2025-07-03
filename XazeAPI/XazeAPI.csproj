@@ -349,5 +349,7 @@
     <Target Name="AfterBuild">
     </Target>
     -->
-
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+        <Exec Command="cmd /c start explorer &quot;$(TargetDir)&quot;" />
+    </Target>
 </Project>
