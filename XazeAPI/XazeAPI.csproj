@@ -339,6 +339,7 @@
       <EmbeddedResource Include="API\AudioCore\Audios\Seavolution.ogg" />
       <EmbeddedResource Include="API\AudioCore\Audios\SeismicCharge.ogg" />
       <EmbeddedResource Include="API\AudioCore\Audios\YouSpinMe.ogg" />
+      <Content Include="README.md" />
       <Content Include="RueI\RueI.csproj" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
