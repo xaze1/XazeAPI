@@ -23,7 +23,7 @@ public class APILoader : Plugin
     public override void Enable()
     {
         Singleton = this;
-        Logging.ServerLog("Thank you for using XazeAPI! Version " + Version, ConsoleColor.DarkMagenta);
+        Logging.ServerLog("Thank you for using XazeAPI! Version " + Version, ConsoleColor.Magenta);
         AudioManager.Awake(APIAssembly);
     }
 

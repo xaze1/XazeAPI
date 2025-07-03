@@ -45,6 +45,6 @@ public static class XazeHandlerManager
 
     public static void RegisterEvents<T>(T handler, Type handlerType) where T : XazeEventHandler
     {
-        CheckEvent(handler, handlerType, nameof(XazeEventHandler.OnPlayerHearingFakePlayer), typeof(PlayerHearingFakePlayer), nameof(XazeEvents.HearingFake));
+        CheckEvent(handler, handlerType, nameof(XazeEventHandler.OnPlayerHearingFakePlayer), typeof(XazeEvents), nameof(XazeEvents.HearingFake));
     }
 }
