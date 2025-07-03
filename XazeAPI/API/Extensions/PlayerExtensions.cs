@@ -276,22 +276,7 @@ namespace XazeAPI.API.Extensions
         }
 
         /*
-        public static void SavingPlayerData(this Player player)
-        {
-            List<string> overwatchRead = Plugin.Overwatch;
-
-            string userId = player.UserId;
-
-            if (player.IsOverwatchEnabled && !overwatchRead.Contains(userId))
-            {
-                overwatchRead.Add(userId);
-                Logger.Debug($"{player.Nickname}({player.UserId}) has added their overwatch.", Plugin.Debug);
-            }
-            else if (!player.IsOverwatchEnabled && overwatchRead.Remove(userId))
-                Logger.Debug($"{player.Nickname}({player.UserId}) has remove their overwatch.", Plugin.Debug);
-
-            Plugin.Overwatch = overwatchRead;
-        }*/
+        */
 
         public static void Explode(this Player plr)
         {

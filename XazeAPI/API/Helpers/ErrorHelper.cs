@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using System.Text;
-using LabApi.Loader.Features.Plugins;
 using RueI.Extensions.HintBuilding;
 using XazeAPI.API.Stats;
 
@@ -55,8 +54,7 @@ namespace XazeAPI.API.Helpers
                 ServerRolesHelper.SendAdminChatMessage(sb.ToString(), "Plugin Exception caught");
             }
 
-            if (handleError != null)
-                handleError();
+            handleError?.Invoke();
         }
     }
 }

@@ -53,7 +53,7 @@ namespace XazeAPI.API
         {
             foreach(var config in Lights)
             {
-                if (config.LightToy.GameObject == null || config.TargetHub != null && config.TargetHub.gameObject == null)
+                if (config.LightToy.GameObject is null || config.TargetHub != null && config.TargetHub.gameObject is null)
                 {
                     continue;
                 }
