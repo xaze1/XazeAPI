@@ -1229,7 +1229,7 @@ namespace XazeAPI.API.Helpers
                         Timing.KillCoroutines(Timing.CurrentCoroutine);
                     }
 
-                    if (!MainStaticVars.Debug)
+                    if (!APILoader.Debug)
                     {
                         return;
                     }

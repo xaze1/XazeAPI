@@ -29,7 +29,7 @@ namespace XazeAPI.API
             //ItemPickupBase.OnPickupAdded += HandlePickupCreation;
             AdminToys.AdminToyBase.OnRemoved += OnLightRemoved;
 
-            Logging.Debug("[LightSystem] Spawned!", MainStaticVars.Debug);
+            Logging.Debug("[LightSystem] Spawned!", APILoader.Debug);
         }
 
         void OnDestroy()

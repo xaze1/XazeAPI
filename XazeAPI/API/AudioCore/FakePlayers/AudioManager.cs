@@ -21,8 +21,8 @@ namespace XazeAPI.API.AudioCore.FakePlayers
         public static AudioManager? Instance { get; private set; }
 
         public static List<ReferenceHub> ActiveFakes = new();
-        public static Dictionary<FakeConnection, ReferenceHub> FakeConnections = new Dictionary<FakeConnection, ReferenceHub>();
-        public static Dictionary<int, ReferenceHub> FakeConnectionsIds = new Dictionary<int, ReferenceHub>();
+        public static Dictionary<FakeConnection, ReferenceHub> FakeConnections = new();
+        public static Dictionary<int, ReferenceHub> FakeConnectionsIds = new();
 
         public static Action<CustomAudioPlayer> OnFakeDestroyed;
 
@@ -39,21 +39,19 @@ namespace XazeAPI.API.AudioCore.FakePlayers
         /// <summary>
         /// Sets the Audio System up
         /// </summary>
-        public static void Awake()
+        public static void Awake(Assembly audioAssembly)
         {
             Instance ??= new AudioManager();
-            
-            var assembly = MainStaticVars.APIAssembly;
 
             Directory.CreateDirectory(AudioPath);
-            Logging.Debug($"Resources: {assembly.GetManifestResourceNames().Length}", MainStaticVars.Debug);
+            Logging.Debug($"Resources: {audioAssembly.GetManifestResourceNames().Length}", APILoader.Debug);
 
-            foreach(var resource in assembly.GetManifestResourceNames())
+            foreach(var resource in audioAssembly.GetManifestResourceNames())
             {
                 if (!resource.EndsWith(".ogg"))
                     continue;
 
-                Logging.Debug($"Looking at {resource}", MainStaticVars.Debug);
+                Logging.Debug($"Looking at {resource}", APILoader.Debug);
 
                 int lastDotIndex = resource.LastIndexOf('.');
                 int secondLastDotIndex = resource.LastIndexOf('.', lastDotIndex - 1);
@@ -65,11 +63,11 @@ namespace XazeAPI.API.AudioCore.FakePlayers
                     continue;
                 }
 
-                using var resourceStream = assembly.GetManifestResourceStream(resource);
+                using var resourceStream = audioAssembly.GetManifestResourceStream(resource);
                 using var file = File.Open(path, FileMode.Create);
                 resourceStream.CopyTo(file);
 
-                Logging.Debug($"Extracted {fileName} to {path}", MainStaticVars.Debug);
+                Logging.Debug($"Extracted {fileName} to {path}", APILoader.Debug);
             }
 
             Logging.Info("Audio System Loaded!");

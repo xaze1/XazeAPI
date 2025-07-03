@@ -35,13 +35,15 @@ namespace XazeAPI.API
 
         public static void ServerLog(string message, ConsoleColor color)
         {
-            Raw($"[{Assembly.GetCallingAssembly().GetName().Name}] {message}", color);
+            Raw($"[{FormatAssemblyName(Assembly.GetCallingAssembly())}] {message}", color);
         }
         
         public static string FormatLog(object message, string prefix, Assembly assembly)
         {
-            return $"[{prefix}] [{Logger.FormatAssemblyName(assembly)}] {message}";
+            return $"[{prefix}] [{FormatAssemblyName(assembly)}] {message}";
         }
+
+        public static string FormatAssemblyName(Assembly assembly) => assembly.GetName().Name;
         
         public static void Raw(string message, ConsoleColor color)
         {
