@@ -12,9 +12,11 @@ using HarmonyLib;
 using LabApi.Loader.Features.Plugins;
 using LabApi.Loader.Features.Plugins.Enums;
 using MEC;
+using PlayerRoles.FirstPersonControl.NetworkMessages;
 using PlayerStatsSystem;
 using XazeAPI.API;
 using XazeAPI.API.AudioCore.FakePlayers;
+using XazeAPI.API.Helpers;
 
 namespace XazeAPI;
 
@@ -24,7 +26,7 @@ public class APILoader : Plugin
     public override string Name => "XazeAPI";
     public override string Description => "API Library by xaze_";
     public override string Author => "xaze_";
-    public override Version Version => new Version(1, 0, 0);
+    public override Version Version => new Version(1, 0, 1);
     public override Version RequiredApiVersion => new(0, 0, 0);
     public override LoadPriority Priority =>  LoadPriority.Highest;
 
@@ -32,9 +34,14 @@ public class APILoader : Plugin
     public static bool Debug { get; set; } = false;
     public static readonly Assembly APIAssembly = Assembly.GetAssembly(typeof(APILoader));
     public static readonly Harmony Patches = new Harmony("XAZE-API");
-    
-    public override void Enable()
+
+    public void Setup()
     {
+        if (Singleton != null)
+        {
+            return;
+        }
+        
         Singleton = this;
         Logging.ServerLog("Thank you for using XazeAPI! Version " + Version, ConsoleColor.Magenta);
         AudioManager.Awake(APIAssembly);
@@ -42,10 +49,17 @@ public class APILoader : Plugin
         Patches.PatchCategory(PatchGroup);
 
         ReferenceHub.OnPlayerAdded += ctx => Timing.CallDelayed(0.1f, () => SetupPlayer(ctx));
+        FpcServerPositionDistributor.RoleSyncEvent += DisguiseHelper.OnRoleSyncEvent;
+    }
+    
+    public override void Enable()
+    {
+        Setup();
     }
 
     public override void Disable()
     {
+        Setup();
     }
 
     private static void SetupPlayer(ReferenceHub hub)

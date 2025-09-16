@@ -132,7 +132,7 @@ namespace XazeAPI.API.DiscordWebhook
                     TitleUrl = "",
                     Description = "Death Reason: " + damageHandler.ServerLogsText + $"\n" +
                     $"Damage Type: {MainHelper.getDamageType(damageHandler)}\n" +
-                    $"Damage: " + damageHandler.getDamage(),
+                    "Damage: " + damageHandler.getDamage(),
                     Color = System.Drawing.Color.Red,
                     Timestamp = DateTimeOffset.Now,
                     Fields = new()
@@ -167,7 +167,8 @@ namespace XazeAPI.API.DiscordWebhook
                     Title = Target.DisplayName + " died to " + Attacker.DisplayName,
                     TitleUrl = "",
                     Description = "Death Reason: " + damageHandler.ServerLogsText + $"\n" +
-                    $"Damage Type: {MainHelper.getDamageType(damageHandler)}",
+                    $"Damage Type: {MainHelper.getDamageType(damageHandler)}\n" +
+                    "Damage: " + damageHandler.getDamage(),
                     Color = System.Drawing.Color.Red,
                     Timestamp = DateTimeOffset.Now,
                     Fields = new()

@@ -13,17 +13,17 @@ namespace XazeAPI.API.Structures
 {
     public struct DisguisedPlayer
     {
-        public Player Player;
-        public RoleTypeId Disguise = RoleTypeId.None;
-        public byte UnitId = 0;
-        public Func<ReferenceHub, bool>? NeedsDisguise;
+        public readonly Player Player;
+        public readonly RoleTypeId Disguise = RoleTypeId.None;
+        public readonly Func<ReferenceHub, bool>? NeedsDisguise;
+        public readonly byte UnitId;
 
-        public DisguisedPlayer(ReferenceHub hub, RoleTypeId disguise, byte unit, Func<ReferenceHub, bool> predicate = null)
+        public DisguisedPlayer(ReferenceHub hub, RoleTypeId disguise, byte unitId = 0, Func<ReferenceHub, bool> predicate = null)
         {
             Player = Player.Get(hub);
             Disguise = disguise;
-            UnitId = unit;
             NeedsDisguise = predicate;
+            UnitId = unitId;
         }
     }
 }

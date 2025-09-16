@@ -172,37 +172,6 @@ namespace XazeAPI.API
             Lights.RemoveWhere(x => x.LightToy.GameObject == light.gameObject);
         }
 
-        /*
-        static void HandlePickupCreation(ItemPickupBase pickupBase)
-        {
-            if (!CustomItem.TrackedSerials.TryGetValue(pickupBase.Info.Serial, out var id) || !CustomItem.TryGet(id, out var customItem))
-            {
-                return;
-            }
-            
-            CustomItemSpawnFlags flag = CustomItem.GetFlag(pickupBase.Info.Serial);
-
-            LightConfig config = null;
-            if (customItem is ICustomGlow customGlow)
-            {
-                config = new(pickupBase.transform, customGlow);
-            }
-            else if (flag == CustomItemSpawnFlags.RainbowGlow)
-            {
-                config = new LightConfig(pickupBase.transform, 0.7f, 5f);
-            }
-            else
-            {
-                config = new LightConfig(pickupBase.transform, customItem.ObjectColor, 0.7f, 5f);
-            }
-
-            config.LightToy.Position = Vector3.zero;
-            config.LightToy.ShadowType = LightShadows.None;
-            config.LightToy.ShadowStrength = 0;
-
-            Logging.Debug("[LightSystem] Spawned Light for " + customItem.GetType().Name, Plugin.Debug);
-        }*/
-
         public class LightConfig
         {
             public enum LightState

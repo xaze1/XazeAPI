@@ -125,7 +125,7 @@ namespace XazeAPI.API.AudioCore.FakePlayers
 
         private void LateUpdate()
         {
-            if (TargetHub == null || !Owner.IsAlive() || !Target.IsAlive)
+            if (!TargetHub || !Owner.IsAlive() || !Target.IsAlive)
             {
                 return;
             }

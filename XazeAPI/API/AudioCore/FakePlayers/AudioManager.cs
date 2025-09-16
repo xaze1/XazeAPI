@@ -18,6 +18,7 @@ using VoiceChat;
 using LabApi.Loader.Features.Paths;
 using NetworkManagerUtils.Dummies;
 using LabApi.Features.Wrappers;
+using PlayerRoles.Spectating;
 using XazeAPI.API.Extensions;
 
 namespace XazeAPI.API.AudioCore.FakePlayers
@@ -162,6 +163,7 @@ namespace XazeAPI.API.AudioCore.FakePlayers
                     {
                         hubPlayer.SetScale(Vector3.zero);
                     });
+                    SpectatableVisibilityManager.SetHidden(hubPlayer, true);
                 });
                 fakePlayer.Gravity = Vector3.zero;
             });
