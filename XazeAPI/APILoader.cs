@@ -9,6 +9,7 @@ using System;
 using System.Reflection;
 using EclipsePlugin.API.CustomModules;
 using HarmonyLib;
+using LabApi.Features;
 using LabApi.Loader.Features.Plugins;
 using LabApi.Loader.Features.Plugins.Enums;
 using MEC;
@@ -27,7 +28,7 @@ public class APILoader : Plugin
     public override string Description => "API Library by xaze_";
     public override string Author => "xaze_";
     public override Version Version => new Version(1, 0, 1);
-    public override Version RequiredApiVersion => new(0, 0, 0);
+    public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
     public override LoadPriority Priority =>  LoadPriority.Highest;
 
     public static APILoader Singleton { get; private set; }
