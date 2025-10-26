@@ -319,13 +319,13 @@ namespace XazeAPI.API
 
             scpPreference.Clear();
 
-            scpPreference.Add(RoleTypeId.Scp079, ScpSpawner.GetPreferenceOfPlayer(ReferenceHub, RoleTypeId.Scp079)); // PC
-            scpPreference.Add(RoleTypeId.Scp173, ScpSpawner.GetPreferenceOfPlayer(ReferenceHub, RoleTypeId.Scp173)); // Peanut
-            scpPreference.Add(RoleTypeId.Scp939, ScpSpawner.GetPreferenceOfPlayer(ReferenceHub, RoleTypeId.Scp939)); // Dog
-            scpPreference.Add(RoleTypeId.Scp106, ScpSpawner.GetPreferenceOfPlayer(ReferenceHub, RoleTypeId.Scp106)); // Larry
-            scpPreference.Add(RoleTypeId.Scp096, ScpSpawner.GetPreferenceOfPlayer(ReferenceHub, RoleTypeId.Scp096)); // Shy Guy
-            scpPreference.Add(RoleTypeId.Scp049, ScpSpawner.GetPreferenceOfPlayer(ReferenceHub, RoleTypeId.Scp049)); // Doctor
-            scpPreference.Add(RoleTypeId.Scp3114, ScpSpawner.GetPreferenceOfPlayer(ReferenceHub, RoleTypeId.Scp3114)); // Skelly
+            scpPreference.Add(RoleTypeId.Scp079, ScpSpawner.GetCombinedPreferencePoints(ReferenceHub, RoleTypeId.Scp079, [])); // PC
+            scpPreference.Add(RoleTypeId.Scp173, ScpSpawner.GetCombinedPreferencePoints(ReferenceHub, RoleTypeId.Scp173, [])); // Peanut
+            scpPreference.Add(RoleTypeId.Scp939, ScpSpawner.GetCombinedPreferencePoints(ReferenceHub, RoleTypeId.Scp939, [])); // Dog
+            scpPreference.Add(RoleTypeId.Scp106, ScpSpawner.GetCombinedPreferencePoints(ReferenceHub, RoleTypeId.Scp106, [])); // Larry
+            scpPreference.Add(RoleTypeId.Scp096, ScpSpawner.GetCombinedPreferencePoints(ReferenceHub, RoleTypeId.Scp096, [])); // Shy Guy
+            scpPreference.Add(RoleTypeId.Scp049, ScpSpawner.GetCombinedPreferencePoints(ReferenceHub, RoleTypeId.Scp049, [])); // Doctor
+            scpPreference.Add(RoleTypeId.Scp3114, ScpSpawner.GetCombinedPreferencePoints(ReferenceHub, RoleTypeId.Scp3114, [])); // Skelly
 
             return scpPreference;
         }

@@ -6,6 +6,7 @@
 // I <3 🦈s :3c
 
 using System.Linq;
+using System.Threading.Tasks;
 using InventorySystem.Items.Firearms;
 using LabApi.Features.Wrappers;
 using PlayerRoles;
@@ -224,10 +225,16 @@ namespace XazeAPI.API.DiscordWebhook
 
         public static void SendMessage(StringContent content, string webhookUrl)
         {
-            if (!isInitialized) return;
+            if (!isInitialized || string.IsNullOrWhiteSpace(webhookUrl))
+                return;
 
-            Thread messageThread = new Thread(() => Client.PostAsync(webhookUrl, content).Wait());
-            messageThread.Start();
+            if (!Uri.TryCreate(webhookUrl, UriKind.Absolute, out var uri))
+                return;
+
+            _ = Task.Run(async () =>
+            {
+                await Client.PostAsync(uri, content);
+            });
         }
 
         public static void Initialize()
