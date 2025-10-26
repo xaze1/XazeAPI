@@ -574,19 +574,19 @@ namespace XazeAPI.API.Helpers
 
                         // Halloween Effects
 
-                        // Spicy => "Spicy",
+                        Spicy => "Spicy",
                         Ghostly => "Ghostly",
-                        // OrangeCandy => "Orange Candy (God Light)",
+                        OrangeCandy => "Orange Candy (God Light)",
                         MarshmallowEffect => "MarshmallowEffect",
-                        // SugarRush => $"Sugar Rush ({effect.getSpeedMult()})",
-                        // SugarHigh => "Sugar High",
-                        // SugarCrave => "Sugar Crave",
-                        // OrangeWitness => "Orange Witness",
-                        // TraumatizedByEvil => "Traumatized (Evil)",
-                        // SlowMetabolism => "Slow Metabolism",
-                        // TemporaryBypass => "Bypass (Temp)",
-                        // Metal => "Metal",
-                        // Prismatic => String.Format("Prismatic ({0})", effect.getHealthMod()),
+                        SugarRush => $"Sugar Rush ({effect.getSpeedMult()})",
+                        SugarHigh => "Sugar High",
+                        SugarCrave => "Sugar Crave",
+                        OrangeWitness => "Orange Witness",
+                        TraumatizedByEvil => "Traumatized (Evil)",
+                        SlowMetabolism => "Slow Metabolism",
+                        TemporaryBypass => "Bypass (Temp)",
+                        Metal => "Metal",
+                        Prismatic => String.Format("Prismatic ({0})", effect.getHealthMod()),
                         _ => ""
                     };
                 }
@@ -764,14 +764,13 @@ namespace XazeAPI.API.Helpers
 
                 // Halloween Effects
 
-                    /*
                 case Prismatic prismatic:
                     {
                         if (prismatic.IsImmunityActive)
                             return "Immunity Active";
                         return $"+ {Prismatic.HealingPerTick} HP/s";
                     }
-                    */
+                
                 default:
                     return "";
             }
