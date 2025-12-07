@@ -21,6 +21,7 @@ using InventorySystem.Items.Firearms;
 using InventorySystem.Items.MarshmallowMan;
 using InventorySystem.Items.Pickups;
 using InventorySystem.Items.ThrowableProjectiles;
+using InventorySystem.Items.Usables;
 using InventorySystem.Items.Usables.Scp244.Hypothermia;
 using LabApi.Features.Wrappers;
 using LightContainmentZoneDecontamination;
@@ -43,9 +44,11 @@ using UnityEngine;
 using XazeAPI.API.AudioCore.FakePlayers;
 using XazeAPI.API.Enums;
 using XazeAPI.API.Extensions;
+using AntiScp207 = CustomPlayerEffects.AntiScp207;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 using Scp018Projectile = InventorySystem.Items.ThrowableProjectiles.Scp018Projectile;
+using Scp207 = CustomPlayerEffects.Scp207;
 using ThrowableItem = InventorySystem.Items.ThrowableProjectiles.ThrowableItem;
 
 namespace XazeAPI.API.Helpers
@@ -607,8 +610,13 @@ namespace XazeAPI.API.Helpers
                     .Append(effectName);
 
                 if (effect.Duration != 0 && effectName != "")
-                    sb.Append($" - " + (int)effect.TimeLeft + "s");
+                    sb.Append(" - " + (int)effect.TimeLeft + "s");
 
+                if (effect is Invisible && hub.TryGetInventoryItem(hub.inventory.CurItem, out var hat) && hat is Scp268 { IsWorn: true } hatItem)
+                {
+                    sb.Append(" - " + (int)(Scp268.InvisibilityTime - hatItem._stopwatch.Elapsed.TotalSeconds));
+                }
+                
                 sb.CloseColor()
                     .AddLinebreak();
             }
@@ -1284,8 +1292,8 @@ namespace XazeAPI.API.Helpers
             return System.Drawing.Color.FromArgb(
                 Mathf.RoundToInt(color.a * 255f),
                 Mathf.RoundToInt(color.r * 255f),
-                Mathf.RoundToInt(color.b * 255f),
-                Mathf.RoundToInt(color.g * 255f)
+                Mathf.RoundToInt(color.g * 255f),
+                Mathf.RoundToInt(color.b * 255f)
                 );
         }
 

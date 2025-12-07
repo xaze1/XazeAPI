@@ -65,7 +65,7 @@ namespace XazeAPI.API.AudioCore.FakePlayers
 
         public override void Update()
         {
-            if (Owner == null || !ready || StreamBuffer.Count == 0 || !ShouldPlay)
+            if (Target.IsDestroyed || !ready || StreamBuffer.Count == 0 || !ShouldPlay)
             {
                 return;
             }
@@ -96,14 +96,9 @@ namespace XazeAPI.API.AudioCore.FakePlayers
                     broadcastVc = HearOverride.VoicechatOverride;
                 }
 
-                if (broadcastVc == VoiceChatChannel.Proximity && !Owner.IsAlive())
-                {
-                    continue;
-                }
-
                 foreach (ReferenceHub allHub in ReferenceHub.AllHubs)
                 {
-                    var hearingEvent = new PlayerHearingFakePlayer(allHub, this.Owner, this);
+                    var hearingEvent = new PlayerHearingFakePlayer(allHub, Owner, this);
                     XazeEvents.OnPlayerHearingFake(hearingEvent);
                     if (!hearingEvent.IsAllowed)
                     {
