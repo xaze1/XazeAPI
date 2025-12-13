@@ -36,7 +36,7 @@ namespace XazeAPI.API.Helpers
             Logging.Error($"-----------------------------------------------");
             Logging.Error(exception != null ? String.Format("{0}", exception) : "No Exception Given");
 
-            if (NetworkServer.active && exception != null)
+            if (NetworkServer.active && exception != null && handleError == null)
             {
                 var sb = new StringBuilder()
                     .SetAlignment(HintBuilding.AlignStyle.Center)

@@ -24,6 +24,7 @@ using LabApi.Features.Wrappers;
 using UnityEngine.Networking;
 using XazeAPI.API.Events;
 using XazeAPI.API.Extensions;
+using XazeAPI.API.Helpers;
 using XazeAPI.API.Structures;
 
 namespace XazeAPI.API.AudioCore.FakePlayers
@@ -65,61 +66,83 @@ namespace XazeAPI.API.AudioCore.FakePlayers
 
         public override void Update()
         {
-            if (!Owner)
+            try
             {
-                return;
-            }
-            
-            if (Target.IsDestroyed || !ready || StreamBuffer.Count == 0 || !ShouldPlay)
-            {
-                return;
-            }
-
-            allowedSamples += Time.deltaTime * (float)samplesPerSecond;
-            int num = Mathf.Min(Mathf.FloorToInt(allowedSamples), StreamBuffer.Count);
-
-            Logging.Debug($"1 {num} {allowedSamples} {samplesPerSecond} {StreamBuffer.Count} {PlaybackBuffer.Length} {PlaybackBuffer.WriteHead}", LogDebug);
-
-            if (num > 0)
-            {
-                for (int i = 0; i < num; i++)
+                if (!Owner)
                 {
-                    PlaybackBuffer.Write(StreamBuffer.Dequeue() * (Volume / 100f));
-                }
-            }
-
-            Logging.Debug($"2 {num} {allowedSamples} {samplesPerSecond} {StreamBuffer.Count} {PlaybackBuffer.Length} {PlaybackBuffer.WriteHead}", LogDebug);
-
-            allowedSamples -= num;
-            while (PlaybackBuffer.Length >= 480)
-            {
-                PlaybackBuffer.ReadTo(SendBuffer, 480L, 0L);
-                int dataLen = Encoder.Encode(SendBuffer, EncodedBuffer);
-                VoiceChatChannel broadcastVc = BroadcastChannel;
-                if (HearOverride.IsSet && HearOverride.VoicechatOverride != VoiceChatChannel.None)
-                {
-                    broadcastVc = HearOverride.VoicechatOverride;
+                    return;
                 }
 
-                foreach (ReferenceHub allHub in ReferenceHub.AllHubs.Where(x => x))
+                if (Target.IsDestroyed || !ready || StreamBuffer.Count == 0 || !ShouldPlay)
                 {
-                    var hearingEvent = new PlayerHearingFakePlayer(allHub, Owner, this);
-                    XazeEvents.OnPlayerHearingFake(hearingEvent);
-                    if (!hearingEvent.IsAllowed)
-                    {
-                        continue;
-                    }
-                    
-                    if (allHub.connectionToClient == null || !PlayerIsConnected(allHub))
-                    {
-                        continue;
-                    }
+                    return;
+                }
 
-                    if (!HearOverride.IsSet && CanHearSound(allHub) && (BroadcastTo.Count < 1 || BroadcastTo.Contains(allHub.PlayerId)) || HearOverride.PlayerCanHear(allHub))
+                allowedSamples += Time.deltaTime * samplesPerSecond;
+                int num = Mathf.Min(Mathf.FloorToInt(allowedSamples), StreamBuffer.Count);
+
+                Logging.Debug(
+                    $"1 {num} {allowedSamples} {samplesPerSecond} {StreamBuffer.Count} {PlaybackBuffer.Length} {PlaybackBuffer.WriteHead}",
+                    LogDebug);
+
+                if (num > 0)
+                {
+                    for (int i = 0; i < num; i++)
                     {
-                        allHub.connectionToClient.Send(new VoiceMessage(Owner, broadcastVc, EncodedBuffer, dataLen, isNull: false));
+                        PlaybackBuffer.Write(StreamBuffer.Dequeue() * (Volume / 100f));
                     }
                 }
+
+                Logging.Debug(
+                    $"2 {num} {allowedSamples} {samplesPerSecond} {StreamBuffer.Count} {PlaybackBuffer.Length} {PlaybackBuffer.WriteHead}",
+                    LogDebug);
+
+                allowedSamples -= num;
+            }
+            catch (Exception ex)
+            {
+                ErrorHelper.ErrorLogStyling(ex, "FakePlayer Error");
+            }
+
+            try
+            {
+                while (PlaybackBuffer.Length >= 480)
+                {
+                    PlaybackBuffer.ReadTo(SendBuffer, 480L, 0L);
+                    int dataLen = Encoder.Encode(SendBuffer, EncodedBuffer);
+                    VoiceChatChannel broadcastVc = BroadcastChannel;
+                    if (HearOverride.IsSet && HearOverride.VoicechatOverride != VoiceChatChannel.None)
+                    {
+                        broadcastVc = HearOverride.VoicechatOverride;
+                    }
+
+                    foreach (ReferenceHub allHub in ReferenceHub.AllHubs.Where(x => x))
+                    {
+                        var hearingEvent = new PlayerHearingFakePlayer(allHub, Owner, this);
+                        XazeEvents.OnPlayerHearingFake(hearingEvent);
+                        if (!hearingEvent.IsAllowed)
+                        {
+                            continue;
+                        }
+
+                        if (allHub.connectionToClient == null || !PlayerIsConnected(allHub))
+                        {
+                            continue;
+                        }
+
+                        if (!HearOverride.IsSet && CanHearSound(allHub) &&
+                            (BroadcastTo.Count < 1 || BroadcastTo.Contains(allHub.PlayerId)) ||
+                            HearOverride.PlayerCanHear(allHub))
+                        {
+                            allHub.connectionToClient?.Send(new VoiceMessage(Owner, broadcastVc, EncodedBuffer, dataLen,
+                                isNull: false));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHelper.ErrorLogStyling(ex, "FakePlayer Playback Error", () => {});
             }
         }
 
