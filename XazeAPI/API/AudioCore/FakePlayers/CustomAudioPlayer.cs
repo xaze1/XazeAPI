@@ -65,6 +65,11 @@ namespace XazeAPI.API.AudioCore.FakePlayers
 
         public override void Update()
         {
+            if (!Owner)
+            {
+                return;
+            }
+            
             if (Target.IsDestroyed || !ready || StreamBuffer.Count == 0 || !ShouldPlay)
             {
                 return;
@@ -96,7 +101,7 @@ namespace XazeAPI.API.AudioCore.FakePlayers
                     broadcastVc = HearOverride.VoicechatOverride;
                 }
 
-                foreach (ReferenceHub allHub in ReferenceHub.AllHubs)
+                foreach (ReferenceHub allHub in ReferenceHub.AllHubs.Where(x => x))
                 {
                     var hearingEvent = new PlayerHearingFakePlayer(allHub, Owner, this);
                     XazeEvents.OnPlayerHearingFake(hearingEvent);
