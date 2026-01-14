@@ -147,7 +147,7 @@ namespace XazeAPI.API.AudioCore.FakePlayers
             }
 
             CustomAudioPlayer cplayer = CustomAudioPlayer.Get(hubPlayer);
-            cplayer.BroadcastChannel = VoiceChatChannel.Intercom;
+            cplayer.BroadcastChannel = VoiceChatChannel.RoundSummary;
             cplayer.Volume = 15;
 
             // hubPlayer.playerStats.GetModule<AdminFlagsStat>().SetFlag(AdminFlags.Noclip, true);

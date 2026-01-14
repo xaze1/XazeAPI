@@ -9,7 +9,9 @@ using PlayerStatsSystem;
 using Respawning;
 using Subtitles;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Cassie;
 using Utils.Networking;
 using XazeAPI.API.Helpers;
 
@@ -22,9 +24,7 @@ namespace XazeAPI.API.Structures
 
         public SubtitlePart[] Subtitles;
 
-        bool IsHeld;
         bool IsNoisy;
-        bool IsSubtitles;
         public bool IsSet;
 
         public CassieAnnouncement()
@@ -32,18 +32,16 @@ namespace XazeAPI.API.Structures
             IsSet = false;
         }
 
-        public CassieAnnouncement(string announcemnt, string translation, bool isHeld = false, bool isNoisy = true, bool isSubtitles = true)
+        public CassieAnnouncement(string announcemnt, string translation, bool isNoisy = true)
         {
             IsSet = true;
             Announcement = announcemnt;
             Translation = translation ?? announcemnt;
 
-            IsHeld = isHeld;
             IsNoisy = isNoisy;
-            IsSubtitles = isSubtitles;
         }
 
-        public CassieAnnouncement(StringBuilder announcement, StringBuilder translation, bool isHeld = false, bool isNoisy = true, bool isSubtitles = true)
+        public CassieAnnouncement(StringBuilder announcement, StringBuilder translation, bool isNoisy = true)
         {
             IsSet = true;
             Announcement = announcement.ToString();
@@ -57,12 +55,10 @@ namespace XazeAPI.API.Structures
                 Translation = translation.ToString();
             }
 
-            IsHeld = isHeld;
             IsNoisy = isNoisy;
-            IsSubtitles = isSubtitles;
         }
 
-        public CassieAnnouncement(StringBuilder announcement, SubtitlePart[] subtitles = null, bool isHeld = false, bool isNoisy = true, bool isSubtitles = true)
+        public CassieAnnouncement(StringBuilder announcement, SubtitlePart[] subtitles = null, bool isNoisy = true)
         {
             IsSet = true;
             Announcement = announcement.ToString();
@@ -76,21 +72,18 @@ namespace XazeAPI.API.Structures
                 Subtitles = subtitles;
             }
 
-            IsHeld = isHeld;
             IsNoisy = isNoisy;
-            IsSubtitles = isSubtitles;
         }
 
         public void PlayAnnouncement()
         {
             if (Subtitles != null)
             {
-                RespawnEffectsController.PlayCassieAnnouncement(Announcement, IsHeld, IsNoisy, false);
-                new SubtitleMessage(Subtitles).SendToAuthenticated();
+                new Cassie.CassieAnnouncement(new CassieTtsPayload(Announcement, IsNoisy, Subtitles)).AddToQueue();
                 return;
             }
 
-            MainHelper.MessageTranslated(Announcement, Translation, IsHeld, IsNoisy, IsSubtitles);
+            MainHelper.MessageTranslated(Announcement, Translation, IsNoisy);
         }
 
         public void PlayGlitchyAnnouncement(float glitchChance, float jamChance)
@@ -116,20 +109,15 @@ namespace XazeAPI.API.Structures
                 }
             }
 
-            tts = "";
-            foreach (string newWord in newWords)
-            {
-                tts = tts + newWord + " ";
-            }
+            tts = newWords.Aggregate("", (current, newWord) => current + newWord + " ");
 
             if (Subtitles != null)
             {
-                RespawnEffectsController.PlayCassieAnnouncement(tts, IsHeld, IsNoisy, false);
-                new SubtitleMessage(Subtitles).SendToAuthenticated();
+                new Cassie.CassieAnnouncement(new CassieTtsPayload(tts, IsNoisy, Subtitles)).AddToQueue();
                 return;
             }
 
-            MainHelper.MessageTranslated(tts, Translation, IsHeld, IsNoisy, IsSubtitles);
+            MainHelper.MessageTranslated(tts, Translation, IsNoisy);
         }
 
         public void PlayGlitchyAnnouncement()

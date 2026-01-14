@@ -63,6 +63,16 @@ namespace XazeAPI.API.Extensions
             result = default!;
             return false;
         }
-
+        
+        public static IList<T> Shuffle<T>(this IList<T> list, System.Random rng)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1); // 0 ≤ j ≤ i
+                (list[i], list[j]) = (list[j], list[i]);
+            }
+            
+            return list;
+        }
     }
 }

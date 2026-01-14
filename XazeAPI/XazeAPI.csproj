@@ -181,6 +181,7 @@
         <Compile Include="API\Stats\Player\PlayerDeathStat.cs" />
         <Compile Include="API\Stats\Player\PlayerKillStat.cs" />
         <Compile Include="API\Stats\PluginStatistics.cs" />
+        <Compile Include="API\StopTimer.cs" />
         <Compile Include="API\Structures\CassieAnnouncement.cs" />
         <Compile Include="API\Structures\DisguisedPlayer.cs" />
         <Compile Include="API\Structures\FakePlayerCustomHearSoundCheck.cs" />

@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using Cassie;
 using CustomPlayerEffects;
 using Footprinting;
 using Interactables.Interobjects.DoorUtils;
@@ -1594,16 +1595,9 @@ namespace XazeAPI.API.Helpers
             }
         }
 
-        public static void MessageTranslated(string message, string translation, bool isHeld = false, bool isNoisy = true, bool isSubtitles = true)
+        public static void MessageTranslated(string message, string translation, bool isNoisy = true)
         {
-            StringBuilder announcement = StringBuilderPool.Shared.Rent();
-            string[] cassies = message.Split('\n');
-            string[] translations = translation.Split('\n');
-            for (int i = 0; i < cassies.Length; i++)
-                announcement.Append($"{translations[i].Replace(' ', ' ')}<size=0> {cassies[i]} </size><split>");
-
-            RespawnEffectsController.PlayCassieAnnouncement(announcement.ToString(), isHeld, isNoisy, isSubtitles);
-            StringBuilderPool.Shared.Return(announcement);
+            Announcer.Message(message, translation, isNoisy);
         }
 
         public static void SendFakeSyncVar<T>(this Player target, NetworkIdentity behaviorOwner, Type targetType, string propertyName, T value)
