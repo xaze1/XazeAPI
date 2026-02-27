@@ -19,8 +19,8 @@ namespace XazeAPI.API.Structures
     public struct FakePlayerCustomHearSoundCheck
     {
         public bool IsSet {  get; private set; }
-        private CustomAudioPlayer _player;
-        private Player _ApiPlayer => Player.Get(_player.Owner);
+        private FakeLoader _player;
+        private Player _ApiPlayer => _player.Dummy;
         public VoiceChatChannel VoicechatOverride { get; private set; }
 
         public FacilityZone Zones { get; private set; }
@@ -35,7 +35,7 @@ namespace XazeAPI.API.Structures
             IsSet = false;
         }
 
-        public FakePlayerCustomHearSoundCheck(CustomAudioPlayer player, FacilityZone zones = FacilityZone.None, float maxDistance = 30, Roles roles = Roles.None, Team teams = Team.OtherAlive, VoiceChatChannel vc = VoiceChatChannel.None)
+        public FakePlayerCustomHearSoundCheck(FakeLoader player, FacilityZone zones = FacilityZone.None, float maxDistance = 30, Roles roles = Roles.None, Team teams = Team.OtherAlive, VoiceChatChannel vc = VoiceChatChannel.None)
         {
             Zones = zones;
             MaxDistance = maxDistance;
@@ -76,7 +76,7 @@ namespace XazeAPI.API.Structures
             Rooms = rooms;
         }
 
-        public bool PlayerCanHear(ReferenceHub hub)
+        public bool PlayerCanHear(Player User)
         {
             // Override isn't setup
             if (!IsSet)
@@ -84,7 +84,6 @@ namespace XazeAPI.API.Structures
                 return true;
             }
 
-            Player User = Player.Get(hub);
             // If the user isn't a real user
             if (User == null)
             {

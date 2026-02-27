@@ -2021,7 +2021,7 @@ namespace XazeAPI.API.Helpers
         public static bool RaycastTest(Vector3 origin, Vector3 direction, out RaycastHit hitInfo, ReferenceHub user, float maxDistance = 10f, int mask = -5) => RaycastTest(new Ray(origin, direction), out hitInfo, (plr) => plr.ReferenceHub == user, maxDistance, mask);
         public static bool RaycastTest(Vector3 origin, Vector3 direction, out RaycastHit hitInfo, Player user, float maxDistance = 10f, int mask = -5) => RaycastTest(new Ray(origin, direction), out hitInfo, (plr) => plr.ReferenceHub == user.ReferenceHub, maxDistance, mask);
         
-        private static readonly System.Random Randomizer = new();
+        public static readonly System.Random Randomizer = new();
         public static double PseudoRandom(double max = 1.0)
         {
             return Randomizer.NextDouble() * max; // Returns a value between 0 and max

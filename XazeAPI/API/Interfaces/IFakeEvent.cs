@@ -11,6 +11,6 @@ namespace XazeAPI.API.Interfaces;
 
 public interface IFakeEvent
 {
-    CustomAudioPlayer? AudioPlayer { get; }
+    FakeLoader? AudioPlayer { get; }
     ReferenceHub? FakePlayer { get; }
 }

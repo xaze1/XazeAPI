@@ -19,6 +19,10 @@ using LabApi.Loader.Features.Paths;
 using NetworkManagerUtils.Dummies;
 using LabApi.Features.Wrappers;
 using PlayerRoles.Spectating;
+using SecretLabNAudio.Core;
+using SecretLabNAudio.Core.Extensions;
+using SecretLabNAudio.Core.Pools;
+using SecretLabNAudio.Core.SendEngines;
 using XazeAPI.API.Extensions;
 
 namespace XazeAPI.API.AudioCore.FakePlayers
@@ -32,7 +36,7 @@ namespace XazeAPI.API.AudioCore.FakePlayers
         public static Dictionary<FakeConnection, ReferenceHub> FakeConnections = new();
         public static Dictionary<int, ReferenceHub> FakeConnectionsIds = new();
 
-        public static Action<CustomAudioPlayer> OnFakeDestroyed;
+        public static event Action<FakeLoader> OnFakeDestroying;
 
         private static int _id = 0;
 
@@ -99,7 +103,7 @@ namespace XazeAPI.API.AudioCore.FakePlayers
         /// Creates a Fake Player to play Audio with
         /// </summary>
         /// <returns><see cref="ReferenceHub"/> of the Fake Player</returns>
-        public static CustomAudioPlayer createFake(string nickname = null, int id = -1, RoleTypeId role = RoleTypeId.Spectator, bool hidePlayerList = true)
+        public static FakeLoader createFake(string nickname = null, int id = -1, RoleTypeId role = RoleTypeId.Spectator, bool hidePlayerList = true)
         {
             if (id == -1)
                 id = DummyNetworkConnection._idGenerator--;
@@ -124,10 +128,7 @@ namespace XazeAPI.API.AudioCore.FakePlayers
             {
                 hubPlayer.authManager._privUserId = $"Dummy{id}@server";
 
-                if (hidePlayerList)
-                    hubPlayer.authManager.NetworkSyncedUserId = null;
-                else
-                    hubPlayer.authManager.NetworkSyncedUserId = hubPlayer.authManager.UserId;
+                hubPlayer.authManager.NetworkSyncedUserId = hidePlayerList ? null : hubPlayer.authManager.UserId;
             }
             catch (Exception e)
             {
@@ -136,22 +137,13 @@ namespace XazeAPI.API.AudioCore.FakePlayers
 
             try
             {
-                if (nickname == null)
-                    hubPlayer.nicknameSync.Network_myNickSync = $"Dummy player {id}";
-                else
-                    hubPlayer.nicknameSync.Network_myNickSync = nickname;
+                hubPlayer.nicknameSync.Network_myNickSync = nickname ?? $"Dummy player {id}";
             }
             catch (Exception e)
             {
                 Logging.Error($"[AudioSystem] Exception when setting nickname for Fake Player\n" + e);
             }
-
-            CustomAudioPlayer cplayer = CustomAudioPlayer.Get(hubPlayer);
-            cplayer.BroadcastChannel = VoiceChatChannel.RoundSummary;
-            cplayer.Volume = 15;
-
-            // hubPlayer.playerStats.GetModule<AdminFlagsStat>().SetFlag(AdminFlags.Noclip, true);
-
+            
             Timing.CallDelayed(0.1f, () =>
             {
                 hubPlayer.roleManager.ServerSetRole(role, RoleChangeReason.RemoteAdmin);
@@ -168,17 +160,17 @@ namespace XazeAPI.API.AudioCore.FakePlayers
                 fakePlayer.Gravity = Vector3.zero;
             });
 
-            return cplayer;
+            return hubPlayer.gameObject.AddComponent<FakeLoader>();
         }
         
         /// <summary>
         /// Creates a Fake Player to play Audio with
         /// </summary>
         /// <returns><see cref="CustomAudioPlayer"/> of the Fake Player</returns>
-        public static CustomAudioPlayer createFake(string nickname = null, int id = -1, VoiceChatChannel broadcastChannel = VoiceChatChannel.Proximity, bool hidePlayerList = true)
+        public static FakeLoader createFake(string nickname = null, int id = -1, VoiceChatChannel broadcastChannel = VoiceChatChannel.Proximity, bool hidePlayerList = true)
         {
             var player = createFake(nickname, id, RoleTypeId.Tutorial, hidePlayerList);
-            player.BroadcastChannel = broadcastChannel;
+            player.Channel = broadcastChannel;
 
             return player;
         }
@@ -187,10 +179,10 @@ namespace XazeAPI.API.AudioCore.FakePlayers
         /// Creates a Fake Player to play Audio with
         /// </summary>
         /// <returns><see cref="CustomAudioPlayer"/> of the Fake Player</returns>
-        public static CustomAudioPlayer createFake(string nickname = null, RoleTypeId role = RoleTypeId.Tutorial, VoiceChatChannel broadcastChannel = VoiceChatChannel.Proximity, bool hidePlayerList = true)
+        public static FakeLoader createFake(string nickname = null, RoleTypeId role = RoleTypeId.Tutorial, VoiceChatChannel broadcastChannel = VoiceChatChannel.Proximity, bool hidePlayerList = true)
         {
             var player = createFake(nickname, -1, role, hidePlayerList);
-            player.BroadcastChannel = broadcastChannel;
+            player.Channel = broadcastChannel;
 
             return player;
         }
@@ -203,175 +195,56 @@ namespace XazeAPI.API.AudioCore.FakePlayers
         /// <param name="broadcastChannel"></param>
         /// <param name="hidePlayerList"></param>
         /// <returns></returns>
-        public static CustomAudioPlayer createFake(int id = -1, VoiceChatChannel broadcastChannel = VoiceChatChannel.Proximity, bool hidePlayerList = true) => 
+        public static FakeLoader createFake(int id = -1, VoiceChatChannel broadcastChannel = VoiceChatChannel.Proximity, bool hidePlayerList = true) => 
             createFake(RandomNames.RandomItem(), id, broadcastChannel, hidePlayerList);
 
-        /// <summary>
-        /// Puts a audio into the Queue
-        /// </summary>
-        /// <param name="dummyId">Id of the Fake Player</param>
-        /// <param name="audio">Path to the audio File</param>
-        /// <param name="audioPos">Index of where to put the Audio in the Queue</param>
-        public static void Enqueue(int dummyId, string audio, int audioPos = -1)
+        public static void Play(FakeLoader fake, string fileName)
         {
-            if (FakeConnectionsIds.TryGetValue(dummyId, out ReferenceHub hub))
-            {
-                var audioPlayer = CustomAudioPlayer.Get(hub);
-                audioPlayer.Enqueue(audio, audioPos);
-            }
+            fake.Play(Path.Combine(AudioPath, fileName));
         }
 
-        /// <summary>
-        /// Plays a Audio file that's in the Queue
-        /// </summary>
-        /// <param name="dummyId">Fake Player Id</param>
-        /// <param name="queuePos">Queue Index</param>
-        public static void Play(int dummyId, int queuePos, VoiceChatChannel broadcastChannel = VoiceChatChannel.None)
+        public static void Destroy(FakeLoader fake)
         {
-            if (FakeConnectionsIds.TryGetValue(dummyId, out ReferenceHub hub))
-            {
-                var audioPlayer = CustomAudioPlayer.Get(hub);
-                if (broadcastChannel != VoiceChatChannel.None)
-                    audioPlayer.BroadcastChannel = broadcastChannel;
-
-                audioPlayer.Play(queuePos);
-            }
-        }
-        
-        public static void Play(ReferenceHub dummy, int queuePos, VoiceChatChannel broadcastChannel = VoiceChatChannel.None)
-        {
-            var audioPlayer = CustomAudioPlayer.Get(dummy);
-
-            if (broadcastChannel != VoiceChatChannel.None)
-                audioPlayer.BroadcastChannel = broadcastChannel;
-
-            audioPlayer.Play(queuePos);
-        }
-
-        /// <summary>
-        /// Destroys a Fake Player
-        /// </summary>
-        /// <param name="dummyId">Fake Player Id</param>
-        public static void Destroy(int dummyId)
-        {
-            if (FakeConnectionsIds.TryGetValue(dummyId, out ReferenceHub hub))
-            {
-                FakeConnections.Remove(FakeConnections.FirstOrDefault(s => s.Value == hub).Key);
-                FakeConnectionsIds.Remove(dummyId);
-                ActiveFakes.Remove(hub);
-                CustomAudioPlayer cplayer = CustomAudioPlayer.Get(hub);
-                cplayer.ClearOnFinish = true;
-                OnFakeDestroyed.Invoke(cplayer);
-                cplayer.OnDestroy();
-            }
-        }
-        
-        /// <summary>
-        /// Destroys a Fake Player
-        /// </summary>
-        /// <param name="cplayer">CustomAudioPlayer</param>
-        public static void Destroy(CustomAudioPlayer cplayer)
-        {
-            int dummyId = FakeConnectionsIds.First(conn => conn.Value == cplayer.Owner).Key;
-
-            if (cplayer.Owner.IsAlive())
-            {
-                cplayer.Owner.roleManager.ServerSetRole(RoleTypeId.Spectator, RoleChangeReason.Died);
-            }
-
-            if (FakeConnectionsIds.TryGetValue(dummyId, out ReferenceHub hub))
-            {
-                FakeConnections.Remove(FakeConnections.FirstOrDefault(s => s.Value == hub).Key);
-                FakeConnectionsIds.Remove(dummyId);
-                ActiveFakes.Remove(hub);
-            }
-
-            cplayer.ClearOnFinish = true;
-            OnFakeDestroyed.Invoke(cplayer);
-            cplayer.OnDestroy();
-        }
-        
-        /// <summary>
-        /// Destroys a Fake Player
-        /// </summary>
-        /// <param name="hub">Fake Player ReferenceHub</param>
-        public static void Destroy(ReferenceHub hub)
-        {
-            int dummyId = FakeConnectionsIds.First(conn => conn.Value == hub).Key;
-
-            if (hub.IsAlive())
-            {
-                hub.roleManager.ServerSetRole(RoleTypeId.Spectator, RoleChangeReason.Died);
-            }
-
-            FakeConnections.Remove(FakeConnections.FirstOrDefault(s => s.Value == hub).Key);
+            int dummyId = FakeConnectionsIds.First(conn => conn.Value == fake.Dummy.ReferenceHub).Key;
+            fake.Dummy.SetRole(RoleTypeId.Spectator);
+            
+            FakeConnections.Remove(FakeConnections.FirstOrDefault(s => s.Value == fake.Dummy.ReferenceHub).Key);
             FakeConnectionsIds.Remove(dummyId);
-            ActiveFakes.Remove(hub);
-
-            CustomAudioPlayer cplayer = CustomAudioPlayer.Get(hub);
-            cplayer.ClearOnFinish = true;
-            OnFakeDestroyed.Invoke(cplayer);
-            cplayer.OnDestroy();
+            ActiveFakes.Remove(fake.Dummy.ReferenceHub);
+            
+            OnFakeDestroying?.Invoke(fake);
+            fake.Destroy();
+            NetworkServer.RemovePlayerForConnection(fake.Dummy.Connection, true);
         }
 
-        /// <summary>
-        /// Sets te Volume of the Fake Player
-        /// </summary>
-        /// <param name="dummyId">Fake Player Id</param>
-        /// <param name="volume">Volume of the Fake Player (1f = 100%)</param>
-        public static void SetVolume(int dummyId, float volume)
+        public static void Destroy(ReferenceHub fake)
         {
-            if (FakeConnectionsIds.TryGetValue(dummyId, out ReferenceHub hub))
+            int dummyId = FakeConnectionsIds.First(conn => conn.Value == fake).Key;
+            
+            FakeConnections.Remove(FakeConnections.FirstOrDefault(s => s.Value == fake).Key);
+            FakeConnectionsIds.Remove(dummyId);
+            ActiveFakes.Remove(fake);
+            
+            if (!FakeLoader.AudioPlayers.TryGetValue(fake, out var fakeLoader))
             {
-                var audioPlayer = CustomAudioPlayer.Get(hub);
-                audioPlayer.Volume = volume;
+                return;
             }
-        }
-        
-        /// <summary>
-        /// Sets te Volume of the Fake Player
-        /// </summary>
-        /// <param name="dummyId">Fake Player Id</param>
-        /// <param name="volume">Volume of the Fake Player (1f = 100%)</param>
-        public static void SetVolume(CustomAudioPlayer audioPlayer, float volume)
-        {
-            audioPlayer.Volume = volume;
+            
+            fakeLoader.Dummy.SetRole(RoleTypeId.Spectator);
+            
+            OnFakeDestroying?.Invoke(fakeLoader);
+            fakeLoader.Destroy();
+            NetworkServer.RemovePlayerForConnection(fakeLoader.Dummy.Connection, true);
         }
 
-        /// <summary>
-        /// Sets the VoiceChannel that the AudioPlayer plays in
-        /// </summary>
-        /// <param name="dummyId">Fake Player Id</param>
-        /// <param name="newChannel">The Voice Channel to switch to</param>
-        public static void SetAudioChannel(int dummyId, VoiceChatChannel newChannel)
+        public static void FakePlayerFollowTransform(FakeLoader fake, ReferenceHub target)
         {
-            if (FakeConnectionsIds.TryGetValue(dummyId, out ReferenceHub hub))
-            {
-                var audioPlayer = CustomAudioPlayer.Get(hub);
-                audioPlayer.BroadcastChannel = newChannel;
-            }
+            fake.SetTarget(target);
         }
 
-        public static void SetSpeed(int dummyId, int speed = 48000)
+        public static void FakePlayerFollowTransform(FakeLoader fake, Player target)
         {
-            if (FakeConnectionsIds.TryGetValue(dummyId, out ReferenceHub hub))
-            {
-                var audioPlayer = CustomAudioPlayer.Get(hub);
-                audioPlayer.samplesPerSecond = speed;
-            }
+            fake.Target = target;
         }
-        
-        public static void SetSpeed(CustomAudioPlayer audioPlayer, int speed = 48000)
-        {
-            audioPlayer.samplesPerSecond = speed;
-        }
-
-        public static void FakePlayerFollowTransform(CustomAudioPlayer fake, ReferenceHub target)
-        {
-            fake.TargetHub = target;
-        }
-
-        public static void FakePlayerFollowTransform(CustomAudioPlayer fake, Player target) =>
-            FakePlayerFollowTransform(fake, target);
     }
 }

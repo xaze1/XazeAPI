@@ -15,11 +15,11 @@ using XazeAPI.API.Interfaces;
 
 namespace XazeAPI.API.Events;
 
-public class PlayerHearingFakePlayer(ReferenceHub target, ReferenceHub fakePlayer, CustomAudioPlayer audioPlayer)
+public class PlayerHearingFakePlayer(ReferenceHub target, ReferenceHub fakePlayer, FakeLoader audioPlayer)
     : EventArgs, IPlayerEvent, IFakeEvent, ICancellableEvent
 {
     public Player? Player { get; } = Player.Get(target);
-    public CustomAudioPlayer? AudioPlayer { get; } = audioPlayer;
+    public FakeLoader? AudioPlayer { get; } = audioPlayer;
     public ReferenceHub? FakePlayer { get; } = fakePlayer;
     public bool IsAllowed { get; set; } = true;
 }
