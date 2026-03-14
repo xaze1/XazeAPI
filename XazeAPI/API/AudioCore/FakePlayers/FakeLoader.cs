@@ -7,12 +7,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using LabApi.Features.Wrappers;
 using SecretLabNAudio.Core;
 using SecretLabNAudio.Core.Extensions;
 using SecretLabNAudio.Core.Pools;
 using UnityEngine;
 using VoiceChat;
+using XazeAPI.API.Helpers;
+using XazeAPI.API.Stats;
 using XazeAPI.API.Structures;
 
 namespace XazeAPI.API.AudioCore.FakePlayers;
@@ -57,10 +60,23 @@ public class FakeLoader : MonoBehaviour
 
     public void Play(string filePath)
     {
-        OnTrackSelecting?.Invoke(this);
-        _trackName = filePath;
-        _audioPlayer.UseFile(filePath);
-        OnTrackSelected?.Invoke(this);
+        try
+        {
+            OnTrackSelecting?.Invoke(this);
+            _trackName = filePath;
+            _audioPlayer.UseFile(filePath);
+            OnTrackSelected?.Invoke(this);
+        }
+        catch (FileNotFoundException ex)
+        {
+            Logging.Warn("Missing Audio: " + filePath);
+            PluginStatistics.ExceptionCaught(false);
+        }
+        catch (Exception ex)
+        {
+            ErrorHelper.ErrorLogStyling(ex);
+            PluginStatistics.ExceptionCaught(false);
+        }
     }
 
     public void Stop()

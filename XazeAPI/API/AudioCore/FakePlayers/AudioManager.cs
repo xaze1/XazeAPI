@@ -19,10 +19,6 @@ using LabApi.Loader.Features.Paths;
 using NetworkManagerUtils.Dummies;
 using LabApi.Features.Wrappers;
 using PlayerRoles.Spectating;
-using SecretLabNAudio.Core;
-using SecretLabNAudio.Core.Extensions;
-using SecretLabNAudio.Core.Pools;
-using SecretLabNAudio.Core.SendEngines;
 using XazeAPI.API.Extensions;
 
 namespace XazeAPI.API.AudioCore.FakePlayers
@@ -214,7 +210,10 @@ namespace XazeAPI.API.AudioCore.FakePlayers
             
             OnFakeDestroying?.Invoke(fake);
             fake.Destroy();
-            NetworkServer.RemovePlayerForConnection(fake.Dummy.Connection, true);
+            Timing.CallDelayed(1, () =>
+            {
+                NetworkServer.RemovePlayerForConnection(fake.Dummy.Connection, true);
+            });
         }
 
         public static void Destroy(ReferenceHub fake)
@@ -234,7 +233,10 @@ namespace XazeAPI.API.AudioCore.FakePlayers
             
             OnFakeDestroying?.Invoke(fakeLoader);
             fakeLoader.Destroy();
-            NetworkServer.RemovePlayerForConnection(fakeLoader.Dummy.Connection, true);
+            Timing.CallDelayed(1, () =>
+            {
+                NetworkServer.RemovePlayerForConnection(fakeLoader.Dummy.Connection, true);
+            });
         }
 
         public static void FakePlayerFollowTransform(FakeLoader fake, ReferenceHub target)

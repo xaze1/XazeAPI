@@ -307,29 +307,29 @@
         <Compile Include="RueI\UnityAlternative.cs" />
     </ItemGroup>
     <ItemGroup>
-      <Content Include="API\AudioCore\Audios\BhopSong.ogg" />
-      <Content Include="API\AudioCore\Audios\DeathGamble.ogg" />
-      <Content Include="API\AudioCore\Audios\HerobustMove.ogg" />
-      <Content Include="API\AudioCore\Audios\Hostiles.ogg" />
-      <Content Include="API\AudioCore\Audios\Infernal.ogg" />
-      <Content Include="API\AudioCore\Audios\JoJoOverture.ogg" />
-      <Content Include="API\AudioCore\Audios\Kalinka.ogg" />
-      <Content Include="API\AudioCore\Audios\LobbyTheme1.ogg" />
-      <Content Include="API\AudioCore\Audios\LobbyTheme2.ogg" />
-      <Content Include="API\AudioCore\Audios\LobbyTheme3.ogg" />
-      <Content Include="API\AudioCore\Audios\LobbyTheme4.ogg" />
-      <Content Include="API\AudioCore\Audios\LobbyTheme5.ogg" />
-      <Content Include="API\AudioCore\Audios\LobbyTheme6.ogg" />
-      <Content Include="API\AudioCore\Audios\LobbyTheme7.ogg" />
-      <Content Include="API\AudioCore\Audios\LobbyTheme8.ogg" />
-      <Content Include="API\AudioCore\Audios\LunarAbyss.ogg" />
-      <Content Include="API\AudioCore\Audios\MineBeep.ogg" />
-      <Content Include="API\AudioCore\Audios\NeverSeeItComing.ogg" />
-      <Content Include="API\AudioCore\Audios\NewDimensions.ogg" />
-      <Content Include="API\AudioCore\Audios\PersonnelSpawn.ogg" />
-      <Content Include="API\AudioCore\Audios\Seavolution.ogg" />
-      <Content Include="API\AudioCore\Audios\SeismicCharge.ogg" />
-      <Content Include="API\AudioCore\Audios\YouSpinMe.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\BhopSong.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\DeathGamble.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\HerobustMove.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\Hostiles.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\Infernal.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\JoJoOverture.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\Kalinka.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme1.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme2.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme3.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme4.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme5.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme6.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme7.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LobbyTheme8.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\LunarAbyss.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\MineBeep.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\NeverSeeItComing.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\NewDimensions.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\PersonnelSpawn.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\Seavolution.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\SeismicCharge.ogg" />
+      <EmbeddedResource Include="API\AudioCore\Audios\YouSpinMe.ogg" />
       <Content Include="RueI\RueI.csproj" />
     </ItemGroup>
     <ItemGroup>
