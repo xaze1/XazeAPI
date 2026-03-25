@@ -23,7 +23,7 @@ public static class XazeHandlerManager
     public static void UnregisterEventsHandler<T>(T handler) where T : XazeEventHandler
     {
       foreach (var internalEvent in handler.InternalEvents)
-        internalEvent.Key.RemoveEventHandler((object) null, internalEvent.Value);
+        internalEvent.Key.RemoveEventHandler(null, internalEvent.Value);
       handler.InternalEvents.Clear();
     }
 
@@ -53,5 +53,6 @@ public static class XazeHandlerManager
     public static void RegisterEvents<T>(T handler, Type handlerType) where T : XazeEventHandler
     {
         CheckEvent(handler, handlerType, nameof(XazeEventHandler.OnPlayerHearingFakePlayer), typeof(XazeEvents), nameof(XazeEvents.HearingFake));
+        CheckEvent(handler, handlerType, nameof(XazeEventHandler.OnPlayerScaleChanging), typeof(XazeEvents), nameof(XazeEvents.ScaleChanging));
     }
 }

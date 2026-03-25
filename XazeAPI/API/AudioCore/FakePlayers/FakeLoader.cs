@@ -67,7 +67,7 @@ public class FakeLoader : MonoBehaviour
             _audioPlayer.UseFile(filePath);
             OnTrackSelected?.Invoke(this);
         }
-        catch (FileNotFoundException ex)
+        catch (FileNotFoundException)
         {
             Logging.Warn("Missing Audio: " + filePath);
             PluginStatistics.ExceptionCaught(false);
@@ -106,7 +106,7 @@ public class FakeLoader : MonoBehaviour
 
     private void OnEnded()
     {
-        OnFinishedTrack.Invoke(this, _trackName);
+        OnFinishedTrack?.Invoke(this, _trackName);
     }
 
     private void Awake()
@@ -118,7 +118,7 @@ public class FakeLoader : MonoBehaviour
             return;
         }
 
-        _audioPlayer = AudioPlayerPool.Rent(SpeakerSettings.Default, Dummy.GameObject.transform);
+        _audioPlayer = AudioPlayerPool.Rent(SpeakerSettings.Default, Dummy?.GameObject?.transform);
         _audioPlayer.AlwaysRead = false;
         SendEngine = new(Dummy, VoiceChatChannel.RoundSummary);
         _audioPlayer.WithSendEngine(SendEngine);

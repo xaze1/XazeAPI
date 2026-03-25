@@ -22,4 +22,10 @@ public static class XazeEvents
     {
         PreventHitmarker.InvokeEvent(preventingHitmarker);
     }
+    
+    public static event LabEventHandler<PlayerScaleChanging> ScaleChanging;
+    public static void OnPlayerScaleChanging(PlayerScaleChanging scaleChanging)
+    {
+        ScaleChanging.InvokeEvent(scaleChanging);
+    }
 }

@@ -56,14 +56,14 @@ namespace XazeAPI.API
             set => Player.CustomInfo = value;
         }
 
-        public CustomTeam Team
+        public Team Team
         {
             get
             {
                 if (IsSCP)
-                    return CustomTeam.SCPs;
+                    return Team.SCPs;
 
-                return Player.Team.ToCustomTeam();
+                return Player.Team;
             }
         }
 

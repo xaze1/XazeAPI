@@ -5,6 +5,8 @@
 // 
 // I <3 🦈s :3c
 
+using CentralAuth;
+
 namespace EclipsePlugin.API.CustomModules
 {
     using PlayerRoles;
@@ -41,6 +43,9 @@ namespace EclipsePlugin.API.CustomModules
             base.Update();
             if (CurValue <= 0 && Hub.IsAlive() && Hub.roleManager.CurrentRole.RoleTypeId != RoleTypeId.Scp079)
             {
+                if (Hub.authManager.InstanceMode != ClientInstanceMode.ReadyClient)
+                    return;
+                
                 Hub.playerStats.KillPlayer(new UniversalDamageHandler(-1f, DeathTranslations.Unknown));
                 return;
             }

@@ -6,6 +6,8 @@
 // I <3 🦈s :3c
 
 using EclipsePlugin.API.CustomModules;
+using XazeAPI.API.Events;
+using XazeAPI.API.Events.Handler;
 using XazeAPI.API.Helpers;
 
 namespace XazeAPI.API.Extensions
@@ -37,71 +39,65 @@ namespace XazeAPI.API.Extensions
 
     public static class PlayerExtensions
     {
-        public static void SendConsoleMessage(this ReferenceHub target, string message, string color) => target.gameConsoleTransmission.SendToClient(message, color);
-
-        public static CoroutineHandle createAura(this ReferenceHub attacker, string effectName = null, Action customFunction = null)
+        extension(ReferenceHub target)
         {
-            if (customFunction != null)
+            public void SendConsoleMessage(string message, string color) => target.gameConsoleTransmission.SendToClient(message, color);
+
+            public CoroutineHandle createAura(string effectName = null, Action customFunction = null)
             {
-                customFunction();
-            }
+                customFunction?.Invoke();
 
-            return Timing.CallPeriodically(10000f, 0.5f, () =>
-            {
-
-                if (!attacker.IsAlive())
+                return Timing.CallPeriodically(10000f, 0.5f, () =>
                 {
-                    return;
-                }
 
-                foreach (Player player in Player.List)
-                {
-                    if (player.ReferenceHub == attacker || attacker.IsSCP() && player.IsSCP)
-                    {
-                        continue;
-                    }
-
-                    if (Vector3.Distance(attacker.transform.position, player.ReferenceHub.transform.position) <= 5)
-                    {
-                        if (effectName != null)
-                        {
-                            PlayerEffectsController effectController = player.ReferenceHub.playerEffectsController;
-
-                            effectController.ChangeState(effectName, 1);
-                        }
-                    }
-                }
-            }, () => createAura(attacker, effectName, customFunction));
-
-        }
-        
-        public static CoroutineHandle createAura(this ReferenceHub attacker, DamageHandlerBase handler = null, string effectName = null, Func<bool> customFunction = null)
-        {
-            Footprint footprint = new Footprint(attacker);
-            CoroutineHandle handle = Timing.CallPeriodically(10f, 0.5f, () =>
-            {
-                if (customFunction != null)
-                {
-                    if (!customFunction())
+                    if (!target.IsAlive())
                     {
                         return;
                     }
-                }
 
-                if (!footprint.Role.IsAlive())
-                {
-                    return;
-                }
-
-                foreach (Player player in Player.List)
-                {
-                    if (player.ReferenceHub == footprint.Hub || footprint.Role.GetTeam() == player.Team)
+                    foreach (Player player in Player.List)
                     {
-                        continue;
+                        if (player.ReferenceHub == target || target.IsSCP() && player.IsSCP)
+                        {
+                            continue;
+                        }
+
+                        if (!(Vector3.Distance(target.transform.position, player.ReferenceHub.transform.position) <=
+                              5)) continue;
+                        if (effectName == null) continue;
+                        PlayerEffectsController effectController = player.ReferenceHub.playerEffectsController;
+
+                        effectController.ChangeState(effectName, 1);
+                    }
+                }, () => target.createAura(effectName, customFunction));
+            }
+
+            public CoroutineHandle createAura(DamageHandlerBase handler = null, string effectName = null, Func<bool> customFunction = null)
+            {
+                Footprint footprint = new Footprint(target);
+                CoroutineHandle handle = Timing.CallPeriodically(10f, 0.5f, () =>
+                {
+                    if (customFunction != null)
+                    {
+                        if (!customFunction())
+                        {
+                            return;
+                        }
                     }
 
-                    if (Vector3.Distance(attacker.transform.position, player.Position) <= 5)
+                    if (!footprint.Role.IsAlive())
                     {
+                        return;
+                    }
+
+                    foreach (Player player in Player.List)
+                    {
+                        if (player.ReferenceHub == footprint.Hub || footprint.Role.GetTeam() == player.Team)
+                        {
+                            continue;
+                        }
+
+                        if (!(Vector3.Distance(target.transform.position, player.Position) <= 5)) continue;
                         if (effectName != null)
                         {
                             PlayerEffectsController effectController = player.ReferenceHub.playerEffectsController;
@@ -125,89 +121,101 @@ namespace XazeAPI.API.Extensions
                         {
                             player.ReferenceHub.playerStats.DealDamage(handler);
                         }
-
                     }
-                }
-            }, () => createAura(attacker, handler, effectName, customFunction));
-            return handle;
+                }, () => target.createAura(handler, effectName, customFunction));
+                return handle;
+            }
+
+            public CoroutineHandle createAura(float distance, Action<Player> customFunction)
+            {
+                Footprint footprint = new Footprint(target);
+                CoroutineHandle handle = Timing.CallPeriodically(10f, 0.5f, () =>
+                {
+                    if (!footprint.Role.IsAlive())
+                    {
+                        return;
+                    }
+
+                    foreach (Player player in Player.List)
+                    {
+                        if (player.ReferenceHub == footprint.Hub || footprint.Role.GetTeam() == player.Team)
+                        {
+                            continue;
+                        }
+
+                        if (Vector3.Distance(target.transform.position, player.Position) <= distance)
+                        {
+                            customFunction(player);
+                        }
+                    }
+                }, () => target.createAura(distance, customFunction));
+                return handle;
+            }
         }
 
-        public static CoroutineHandle createAura(this Player attacker, float damageMultiplier, float damagePerMultiplier, DeathTranslation deathTranslation, Action customFunction = null)
+        /// <param name="attacker">Target which gets vaporized</param>
+        /// <param name="attacker">Attacker which vaporizes the Target</param>
+        extension(Player attacker)
         {
-            return Timing.CallPeriodically(10000f, 0.5f, () =>
+            public CoroutineHandle createAura(float damageMultiplier, float damagePerMultiplier, DeathTranslation deathTranslation, Action customFunction = null)
             {
-                if (customFunction != null)
+                return Timing.CallPeriodically(10000f, 0.5f, () =>
                 {
-                    customFunction();
-                }
+                    customFunction?.Invoke();
 
-                if (!attacker.IsAlive)
-                {
-                    return;
-                }
-
-                foreach (Player player in Player.List)
-                {
-                    if (player.ReferenceHub == attacker.ReferenceHub || attacker.IsSCP && player.IsSCP)
+                    if (!attacker.IsAlive)
                     {
-                        continue;
+                        return;
                     }
 
-                    if (Vector3.Distance(attacker.ReferenceHub.transform.position, player.ReferenceHub.transform.position) <= 5)
+                    foreach (Player player in Player.List)
                     {
+                        if (player.ReferenceHub == attacker.ReferenceHub || attacker.IsSCP && player.IsSCP)
+                        {
+                            continue;
+                        }
+
+                        if (!(Vector3.Distance(attacker.ReferenceHub.transform.position,
+                                player.ReferenceHub.transform.position) <= 5)) continue;
+                    
                         float damage = damageMultiplier * damagePerMultiplier;
                         UniversalDamageHandler handler = new(damage, deathTranslation);
                         player.ReferenceHub.playerStats.DealDamage(handler);
                     }
-                }
-            }, () => attacker.createAura(damageMultiplier, damagePerMultiplier, deathTranslation, customFunction));
+                }, () => attacker.createAura(damageMultiplier, damagePerMultiplier, deathTranslation, customFunction));
 
-        }
+            }
 
-        public static CoroutineHandle createAura(this ReferenceHub attacker, float distance, Action<Player> customFunction)
-        {
-            Footprint footprint = new Footprint(attacker);
-            CoroutineHandle handle = Timing.CallPeriodically(10f, 0.5f, () =>
+            public HealthStat GetHealthStat() => attacker.ReferenceHub.GetHealthStat();
+            public void changeMaxHealth(float newMaxHealth) => attacker.ReferenceHub.changeMaxHealth(newMaxHealth);
+
+            /// <summary>
+            /// Vaporizes a Player instantly
+            /// </summary>
+            public void VaporizePlayer()
             {
-                if (!footprint.Role.IsAlive())
-                {
-                    return;
-                }
-
-                foreach (Player player in Player.List)
-                {
-                    if (player.ReferenceHub == footprint.Hub || footprint.Role.GetTeam() == player.Team)
-                    {
-                        continue;
-                    }
-
-                    if (Vector3.Distance(attacker.transform.position, player.Position) <= distance)
-                    {
-                        customFunction(player);
-                    }
-                }
-            }, () => createAura(attacker, distance, customFunction));
-            return handle;
+                DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(attacker.ReferenceHub), DisruptorActionModule.FiringState.FiringSingle), attacker.Camera.forward, -1f);
+                attacker.ReferenceHub.playerStats.KillPlayerWithEvents(vaporizeHandler);
+            }
         }
 
-        public static HealthStat GetHealthStat(this Player plr) => plr.ReferenceHub.GetHealthStat();
-        public static HealthStat GetHealthStat(this ReferenceHub hub)
+        extension(ReferenceHub hub)
         {
-            return hub.playerStats.GetModule<HealthStat>();
-        }
+            public HealthStat GetHealthStat()
+            {
+                return hub.playerStats.GetModule<HealthStat>();
+            }
 
-        public static void changeMaxHealth(this ReferenceHub hub, float newMaxHealth)
-        {
-            hub.playerStats.GetModule<HealthStat>().MaxValue = newMaxHealth;
+            public void changeMaxHealth(float newMaxHealth)
+            {
+                hub.playerStats.GetModule<HealthStat>().MaxValue = newMaxHealth;
+            }
         }
-
-        public static void changeMaxHealth(this Player plr, float newMaxHealth) => plr.ReferenceHub.changeMaxHealth(newMaxHealth);
 
 #nullable enable
         public static CustomHealthStat? getCustomHealthStat(this ReferenceHub hub)
         {
-            CustomHealthStat? stat;
-            if (!hub.playerStats.TryGetModule(out stat))
+            if (!hub.playerStats.TryGetModule(out CustomHealthStat? stat))
             {
                 stat = hub.playerStats.GetModule<HealthStat>() as CustomHealthStat;
             }
@@ -218,58 +226,51 @@ namespace XazeAPI.API.Extensions
         public static CustomHealthStat? getCustomHealthStat(this Player plr) => plr.ReferenceHub.getCustomHealthStat();
 #nullable disable
 
-        /// <summary>
-        /// Vaporizes a Player instantly
-        /// </summary>
         /// <param name="target">Target which gets vaporized</param>
-        /// <param name="attacker">Attacker which vaporizes the Target</param>
-        public static void VaporizePlayer(this ReferenceHub target, ReferenceHub attacker = null)
+        extension(ReferenceHub target)
         {
-            DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(target), DisruptorActionModule.FiringState.FiringSingle), target.PlayerCameraReference.forward, -1f);
+            /// <summary>
+            /// Vaporizes a Player instantly
+            /// </summary>
+            /// <param name="attacker">Attacker which vaporizes the Target</param>
+            public void VaporizePlayer(ReferenceHub attacker = null)
+            {
+                DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(target), DisruptorActionModule.FiringState.FiringSingle), target.PlayerCameraReference.forward, -1f);
 
-            target.playerStats.KillPlayerWithEvents(vaporizeHandler);
+                target.playerStats.KillPlayerWithEvents(vaporizeHandler);
+            }
+
+            /// <summary>
+            /// Vaporizes a Player instantly
+            /// </summary>
+            /// <param name="attacker">Attacker which vaporizes the Target</param>
+            public void VaporizePlayer()
+            {
+                DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(target),DisruptorActionModule.FiringState.FiringSingle), target.PlayerCameraReference.forward, -1f);
+                target.playerStats.KillPlayer(vaporizeHandler);
+            }
         }
 
-        /// <summary>
-        /// Vaporizes a Player instantly
-        /// </summary>
         /// <param name="target">Target which gets vaporized</param>
-        /// <param name="attacker">Attacker which vaporizes the Target</param>
-        public static void VaporizePlayer(this Player target)
+        extension(Player target)
         {
-            DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(target.ReferenceHub), DisruptorActionModule.FiringState.FiringSingle), target.Camera.forward, -1f);
-            target.ReferenceHub.playerStats.KillPlayerWithEvents(vaporizeHandler);
-        }
-        
-        /// <summary>
-        /// Vaporizes a Player instantly
-        /// </summary>
-        /// <param name="target">Target which gets vaporized</param>
-        /// <param name="attacker">Attacker which vaporizes the Target</param>
-        public static void VaporizePlayer(this ReferenceHub target)
-        {
-            DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(target),DisruptorActionModule.FiringState.FiringSingle), target.PlayerCameraReference.forward, -1f);
-            target.playerStats.KillPlayer(vaporizeHandler);
-        }
+            /// <summary>
+            /// Vaporizes a Player instantly
+            /// </summary>
+            /// <param name="attacker">Attacker which vaporizes the Target</param>
+            public void VaporizePlayer(ReferenceHub attacker = null)
+            {
+                target.ReferenceHub.VaporizePlayer(attacker);
+            }
 
-        /// <summary>
-        /// Vaporizes a Player instantly
-        /// </summary>
-        /// <param name="target">Target which gets vaporized</param>
-        /// <param name="attacker">Attacker which vaporizes the Target</param>
-        public static void VaporizePlayer(this Player target, ReferenceHub attacker = null)
-        {
-            VaporizePlayer(target.ReferenceHub, attacker);
-        }
-
-        /// <summary>
-        /// Vaporizes a Player instantly
-        /// </summary>
-        /// <param name="target">Target which gets vaporized</param>
-        /// <param name="attacker">Attacker which vaporizes the Target</param>
-        public static void VaporizePlayer(this Player target, Player attacker = null)
-        {
-            VaporizePlayer(target.ReferenceHub, attacker.ReferenceHub);
+            /// <summary>
+            /// Vaporizes a Player instantly
+            /// </summary>
+            /// <param name="attacker">Attacker which vaporizes the Target</param>
+            public void VaporizePlayer(Player attacker = null)
+            {
+                target.ReferenceHub.VaporizePlayer(attacker.ReferenceHub);
+            }
         }
 
         /// <summary>
@@ -279,7 +280,7 @@ namespace XazeAPI.API.Extensions
         /// <param name="attacker">Attacker which vaporizes the Target</param>
         public static void VaporizePlayer(this ReferenceHub target, Player attacker = null)
         {
-            VaporizePlayer(target, attacker.ReferenceHub);
+            target.VaporizePlayer(attacker.ReferenceHub);
         }
 
         /*
@@ -299,127 +300,141 @@ namespace XazeAPI.API.Extensions
                 return;
             }
 
-            fpc.FpcModule.Motor.ScaleController.Scale = newScale;
+            var scaleEvent = new PlayerScaleChanging(plr, newScale);
+            XazeEvents.OnPlayerScaleChanging(scaleEvent);
+
+            if (!scaleEvent.IsAllowed)
+            {
+                return;
+            }
+
+            fpc.FpcModule.Motor.ScaleController.Scale = scaleEvent.NewScale;
         }
 
-        public static void SetScale(this Player plr, Vector3 Scale) => SetScale(plr.ReferenceHub, Scale);
+        public static void SetScale(this Player plr, Vector3 Scale) => plr.ReferenceHub.SetScale(Scale);
 
-        public static StatusEffectBase GetEffect(this PlayerEffectsController controller, Type effectType)
+        extension(PlayerEffectsController controller)
         {
-            if (controller._effectsByType.TryGetValue(effectType, out StatusEffectBase effect))
+            public StatusEffectBase GetEffect(Type effectType)
             {
-                return effect;
+                if (controller._effectsByType.TryGetValue(effectType, out StatusEffectBase effect))
+                {
+                    return effect;
+                }
+
+                return null;
             }
 
-            return null;
+            public T GetEffect<T>(Type effectType) where T : StatusEffectBase
+            {
+                if (controller._effectsByType.TryGetValue(effectType, out StatusEffectBase effect))
+                {
+                    return effect as T;
+                }
+
+                return null;
+            }
         }
-        
-        public static T GetEffect<T>(this PlayerEffectsController controller, Type effectType) where T : StatusEffectBase
+
+        extension(PlayerStats stats)
         {
-            if (controller._effectsByType.TryGetValue(effectType, out StatusEffectBase effect))
+            public bool DealDamageWithoutRagdoll(DamageHandlerBase handler)
             {
-                return effect as T;
-            }
-
-            return null;
-        }
-
-        public static bool DealDamageWithoutRagdoll(this PlayerStats stats, DamageHandlerBase handler)
-        {
-            if (stats._hub.characterClassManager.GodMode)
-            {
-                return false;
-            }
-
-            if (stats._hub.roleManager.CurrentRole is IDamageHandlerProcessingRole damageHandlerProcessingRole)
-            {
-                handler = damageHandlerProcessingRole.ProcessDamageHandler(handler);
-            }
-
-            ReferenceHub attacker = null;
-            AttackerDamageHandler attackerDamageHandler = handler as AttackerDamageHandler;
-            if (attackerDamageHandler != null)
-            {
-                attacker = attackerDamageHandler.Attacker.Hub;
-            }
-            PlayerHurtingEventArgs playerHurtingEventArgs = new PlayerHurtingEventArgs(attacker, stats._hub, handler);
-            PlayerEvents.OnHurting(playerHurtingEventArgs);
-            if (!playerHurtingEventArgs.IsAllowed)
-            {
-                return false;
-            }
-            DamageHandlerBase.HandlerOutput handlerOutput = handler.ApplyDamage(stats._hub);
-            PlayerEvents.OnHurt(new PlayerHurtEventArgs(attacker, stats._hub, handler));
-            if (handlerOutput == DamageHandlerBase.HandlerOutput.Nothing)
-            {
-                return false;
-            }
-
-            if (handlerOutput == DamageHandlerBase.HandlerOutput.Death)
-            {
-                PlayerDyingEventArgs playerDyingEventArgs = new PlayerDyingEventArgs(stats._hub, attacker, handler);
-                PlayerEvents.OnDying(playerDyingEventArgs);
-                if (!playerDyingEventArgs.IsAllowed)
+                if (stats._hub.characterClassManager.GodMode)
                 {
                     return false;
                 }
 
-                var ragdoll = stats.KillPlayerRagdoll(handler);
+                if (stats._hub.roleManager.CurrentRole is IDamageHandlerProcessingRole damageHandlerProcessingRole)
+                {
+                    handler = damageHandlerProcessingRole.ProcessDamageHandler(handler);
+                }
+
+                ReferenceHub attacker = null;
+                AttackerDamageHandler attackerDamageHandler = handler as AttackerDamageHandler;
+                if (attackerDamageHandler != null)
+                {
+                    attacker = attackerDamageHandler.Attacker.Hub;
+                }
+                PlayerHurtingEventArgs playerHurtingEventArgs = new PlayerHurtingEventArgs(attacker, stats._hub, handler);
+                PlayerEvents.OnHurting(playerHurtingEventArgs);
+                if (!playerHurtingEventArgs.IsAllowed)
+                {
+                    return false;
+                }
+                DamageHandlerBase.HandlerOutput handlerOutput = handler.ApplyDamage(stats._hub);
+                PlayerEvents.OnHurt(new PlayerHurtEventArgs(attacker, stats._hub, handler));
+                if (handlerOutput == DamageHandlerBase.HandlerOutput.Nothing)
+                {
+                    return false;
+                }
+
+                if (handlerOutput == DamageHandlerBase.HandlerOutput.Death)
+                {
+                    PlayerDyingEventArgs playerDyingEventArgs = new PlayerDyingEventArgs(stats._hub, attacker, handler);
+                    PlayerEvents.OnDying(playerDyingEventArgs);
+                    if (!playerDyingEventArgs.IsAllowed)
+                    {
+                        return false;
+                    }
+
+                    var ragdoll = stats.KillPlayerRagdoll(handler);
+
+                    RoleTypeId role = stats._hub.roleManager.CurrentRole.RoleTypeId;
+                    Vector3 vel = stats._hub.GetVelocity();
+                    Vector3 pos = stats._hub.GetPosition();
+                    Quaternion rot = stats._hub.PlayerCameraReference.rotation;
+
+                    PlayerEvents.OnDeath(new PlayerDeathEventArgs(stats._hub, attacker, handler, role, pos, vel, rot));
+
+                    Timing.CallDelayed(0.1f, () => NetworkServer.Destroy(ragdoll.gameObject));
+                }
+
+                return true;
+            }
+
+            public BasicRagdoll KillPlayerRagdoll(DamageHandlerBase handler)
+            {
+                var ragdoll = RagdollManager.ServerSpawnRagdoll(stats._hub, handler);
+                stats._hub.inventory.ServerDropEverything();
+                stats._hub.roleManager.ServerSetRole(RoleTypeId.Spectator, RoleChangeReason.Died);
+                stats._hub.gameConsoleTransmission.SendToClient("You died. Reason: " + handler.ServerLogsText, "yellow");
+                if (stats._hub.roleManager.CurrentRole is SpectatorRole spectatorRole)
+                {
+                    spectatorRole.ServerSetData(handler);
+                }
+
+                return ragdoll;
+            }
+
+            public BasicRagdoll KillPlayerWithEvents(DamageHandlerBase handler)
+            {
+                ReferenceHub attacker = null;
+                if (handler is AttackerDamageHandler atHandler)
+                {
+                    attacker = atHandler.Attacker.Hub;
+                }
+
+                PlayerEvents.OnDying(new PlayerDyingEventArgs(stats._hub, attacker, handler));
+                var ragdoll = RagdollManager.ServerSpawnRagdoll(stats._hub, handler);
+                stats._hub.inventory.ServerDropEverything();
 
                 RoleTypeId role = stats._hub.roleManager.CurrentRole.RoleTypeId;
                 Vector3 vel = stats._hub.GetVelocity();
                 Vector3 pos = stats._hub.GetPosition();
                 Quaternion rot = stats._hub.PlayerCameraReference.rotation;
 
+                stats._hub.roleManager.ServerSetRole(RoleTypeId.Spectator, RoleChangeReason.Died);
+                stats._hub.gameConsoleTransmission.SendToClient("You died. Reason: " + handler.ServerLogsText, "yellow");
+                if (stats._hub.roleManager.CurrentRole is SpectatorRole spectatorRole)
+                {
+                    spectatorRole.ServerSetData(handler);
+                }
+
                 PlayerEvents.OnDeath(new PlayerDeathEventArgs(stats._hub, attacker, handler, role, pos, vel, rot));
 
-                Timing.CallDelayed(0.1f, () => NetworkServer.Destroy(ragdoll.gameObject));
+                return ragdoll;
             }
-
-            return true;
-        }
-
-        public static BasicRagdoll KillPlayerRagdoll(this PlayerStats stats, DamageHandlerBase handler)
-        {
-            var ragdoll = RagdollManager.ServerSpawnRagdoll(stats._hub, handler);
-            stats._hub.inventory.ServerDropEverything();
-            stats._hub.roleManager.ServerSetRole(RoleTypeId.Spectator, RoleChangeReason.Died);
-            stats._hub.gameConsoleTransmission.SendToClient("You died. Reason: " + handler.ServerLogsText, "yellow");
-            if (stats._hub.roleManager.CurrentRole is SpectatorRole spectatorRole)
-            {
-                spectatorRole.ServerSetData(handler);
-            }
-
-            return ragdoll;
-        }
-
-        public static BasicRagdoll KillPlayerWithEvents(this PlayerStats stats, DamageHandlerBase handler)
-        {
-            ReferenceHub attacker = null;
-            if (handler is AttackerDamageHandler atHandler)
-            {
-                attacker = atHandler.Attacker.Hub;
-            }
-
-            PlayerEvents.OnDying(new PlayerDyingEventArgs(stats._hub, attacker, handler));
-            var ragdoll = RagdollManager.ServerSpawnRagdoll(stats._hub, handler);
-            stats._hub.inventory.ServerDropEverything();
-
-            RoleTypeId role = stats._hub.roleManager.CurrentRole.RoleTypeId;
-            Vector3 vel = stats._hub.GetVelocity();
-            Vector3 pos = stats._hub.GetPosition();
-            Quaternion rot = stats._hub.PlayerCameraReference.rotation;
-
-            stats._hub.roleManager.ServerSetRole(RoleTypeId.Spectator, RoleChangeReason.Died);
-            stats._hub.gameConsoleTransmission.SendToClient("You died. Reason: " + handler.ServerLogsText, "yellow");
-            if (stats._hub.roleManager.CurrentRole is SpectatorRole spectatorRole)
-            {
-                spectatorRole.ServerSetData(handler);
-            }
-
-            PlayerEvents.OnDeath(new PlayerDeathEventArgs(stats._hub, attacker, handler, role, pos, vel, rot));
-
-            return ragdoll;
         }
 
         public static Player DisarmedBy(this ReferenceHub hub)

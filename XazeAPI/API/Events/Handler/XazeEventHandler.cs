@@ -15,4 +15,8 @@ public abstract class XazeEventHandler : CustomEventsHandler
     public virtual void OnPlayerHearingFakePlayer(PlayerHearingFakePlayer hearingFakePlayer)
     {
     }
+    
+    public virtual void OnPlayerScaleChanging(PlayerScaleChanging scaleChanging)
+    {
+    }
 }

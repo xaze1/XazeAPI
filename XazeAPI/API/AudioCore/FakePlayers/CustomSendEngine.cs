@@ -5,6 +5,7 @@
 // //
 // // I <3 🦈s :3c
 
+using System;
 using XazeAPI.API.Structures;
 using System.Collections.Generic;
 using LabApi.Features.Wrappers;
@@ -21,6 +22,8 @@ namespace XazeAPI.API.AudioCore.FakePlayers;
 public class CustomSendEngine(Player source, VoiceChatChannel channel)
     : VoiceMessageSendEngine(source, channel)
 {
+
+    public static event Action<Player, AudioMessage> BroadcastingSound; 
     public Player Owner { get; } = source;
     public HashSet<int> BroadcastTo { get; } = [];
     public FakePlayerCustomHearSoundCheck HearOverride { get; set; } = new();
@@ -55,6 +58,7 @@ public class CustomSendEngine(Player source, VoiceChatChannel channel)
             return false;
         }
         
+        BroadcastingSound?.Invoke(player, message);
         return base.Broadcast(player, message);
     }
 

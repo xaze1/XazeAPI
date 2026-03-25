@@ -12,28 +12,31 @@ using System.Threading.Tasks;
 
 namespace XazeAPI.API;
 
-public class StopTimer
+public class StopTimer(TimeSpan duration, Action callback = null)
 {
-    private readonly TimeSpan _duration;
-    private readonly Action _callback;
-    private long _startTimestamp;
-    private long elapsed;
-    private bool _isRunning;
+    private long _startTimestamp = 0L;
+    private long elapsed = 0;
+    private bool _isRunning = false;
     private CancellationTokenSource cts;
 
     public bool IsRunning => _isRunning;
-    public TimeSpan Elapsed => new TimeSpan(GetElapsedTime());
-    
-    public StopTimer(TimeSpan duration, Action callback)
+    public TimeSpan Elapsed => GetElapsedTime();
+    public TimeSpan Remaining
     {
-        _duration = duration;
-        _callback = callback;
-        _startTimestamp = Stopwatch.GetTimestamp();
-    }
+        get
+        {
+            double remainingSeconds = Math.Max(0, field.TotalSeconds - Elapsed.TotalSeconds);
+            return TimeSpan.FromSeconds(remainingSeconds);
+        }
+    } = duration;
 
     public void Start()
     {
+        if (_isRunning)
+            return;
+        
         Stop();
+        _startTimestamp = Stopwatch.GetTimestamp();
         _isRunning = true;
         cts = new CancellationTokenSource();
         RunTimerAsync(cts.Token);
@@ -41,10 +44,14 @@ public class StopTimer
 
     public void Stop()
     {
+        if (_isRunning)
+        {
+            elapsed += Stopwatch.GetTimestamp() - _startTimestamp;
+            _isRunning = false;
+        }
+
         cts?.Cancel();
         cts = null;
-        elapsed += Stopwatch.GetTimestamp() - _startTimestamp;
-        _isRunning = false;
     }
 
     public void Reset()
@@ -58,9 +65,13 @@ public class StopTimer
     {
         try
         {
-            await Task.Delay(_duration, token);
+            await Task.Delay(duration, token);
+
             if (!token.IsCancellationRequested)
-                _callback?.Invoke();
+            {
+                Stop();
+                callback?.Invoke();
+            }
         }
         catch
         {
@@ -70,18 +81,18 @@ public class StopTimer
 
     private long GetRawElapsedTicks()
     {
-        
-        long elapsed = this.elapsed;
-        if (!_isRunning) return elapsed;
-        
-        long num = Stopwatch.GetTimestamp() - _startTimestamp;
-        elapsed += num;
-        
-        return elapsed;
+        long raw = elapsed;
+        if (_isRunning)
+        {
+            raw += Stopwatch.GetTimestamp() - _startTimestamp;
+        }
+        return raw;
     }
 
-    private long GetElapsedTime()
+    private TimeSpan GetElapsedTime()
     {
-        return GetRawElapsedTicks();
+        long rawTicks = GetRawElapsedTicks();
+        double seconds = (double)rawTicks / Stopwatch.Frequency;
+        return TimeSpan.FromSeconds(seconds);
     }
 }
