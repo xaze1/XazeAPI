@@ -13,7 +13,7 @@ namespace XazeAPI.API.Stats.Player
 {
     public class PlayerKillStat : PlayerBaseStat
     {
-        public static Action<LabApi.Features.Wrappers.Player> OnGainKill;
+        public static event Action<LabApi.Features.Wrappers.Player> OnGainKill;
         public PlayerKillStat(ReferenceHub hub)
         {
             Hub = hub;
@@ -56,6 +56,7 @@ namespace XazeAPI.API.Stats.Player
                     }
                     catch
                     {
+                        // Ignore
                     }
                 }
 
@@ -123,7 +124,12 @@ namespace XazeAPI.API.Stats.Player
 
         public static PlayerKillStat GetStatOrDefault(LabApi.Features.Wrappers.Player plr)
         {
-            return GetStatOrDefault(plr.ReferenceHub);
+            if (RegisteredStats.TryGetValue(plr.UserId, out PlayerKillStat trackedPlayer))
+            {
+                return trackedPlayer;
+            }
+
+            return null;
         }
         
         public static int GetKillsOrDefault(ReferenceHub player)

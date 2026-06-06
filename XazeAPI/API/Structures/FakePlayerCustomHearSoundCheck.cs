@@ -9,18 +9,37 @@ using MapGeneration;
 using PlayerRoles;
 using PlayerRoles.Spectating;
 using LabApi.Features.Wrappers;
-using RueI.Displays;
 using UnityEngine;
 using VoiceChat;
 using XazeAPI.API.AudioCore.FakePlayers;
+using XazeAPI.API.AudioCore.Speakers;
+using XazeAPI.API.Enums;
 
 namespace XazeAPI.API.Structures
 {
     public struct FakePlayerCustomHearSoundCheck
     {
         public bool IsSet {  get; private set; }
-        private FakeLoader _player;
-        private Player _ApiPlayer => _player.Dummy;
+        private readonly FakeLoader _player;
+        private readonly SpeakerLoader _speaker;
+
+        private Vector3 ApiPosition
+        {
+            get
+            {
+                if (_player != null)
+                {
+                    return _player.Dummy.Position;
+                }
+
+                if (_speaker != null && _speaker.gameObject != null)
+                {
+                    return _speaker.gameObject.transform.position;
+                }
+
+                return Vector3.zero;
+            }
+        }
         public VoiceChatChannel VoicechatOverride { get; private set; }
 
         public FacilityZone Zones { get; private set; }
@@ -44,6 +63,17 @@ namespace XazeAPI.API.Structures
             VoicechatOverride = vc;
             IsSet = true;
             _player = player;
+        }
+
+        public FakePlayerCustomHearSoundCheck(SpeakerLoader speaker, FacilityZone zones = FacilityZone.None, float maxDistance = 30, Roles roles = Roles.None, Team teams = Team.OtherAlive, VoiceChatChannel vc = VoiceChatChannel.None)
+        {
+            Zones = zones;
+            MaxDistance = maxDistance;
+            PermittedRoles = roles;
+            PermittedTeams = teams;
+            VoicechatOverride = vc;
+            IsSet = true;
+            _speaker = speaker;
         }
 
         public void OverrideVc(VoiceChatChannel channel)
@@ -99,15 +129,13 @@ namespace XazeAPI.API.Structures
                     return false;
                 }
                 // Player is spectating someone
-                else
-                {
-                    // Check for the user spectated instead of the User spectating
-                    User = Player.Get(spectator.SyncedSpectatedNetId);
-                }
+
+                // Check for the user spectated instead of the User spectating
+                User = Player.Get(spectator.SyncedSpectatedNetId);
             }
             
             // If player is inside a valid rooms Boundaries
-            if (User.Room != null)
+            if (User?.Room is not null)
             {
                 bool roomSet = Rooms != RoomName.Unnamed;
                 bool zoneSet = Zones != FacilityZone.None;
@@ -128,7 +156,7 @@ namespace XazeAPI.API.Structures
             }
 
             // If player has a Role
-            if (User.RoleBase is not null)
+            if (User?.RoleBase is not null)
             {
                 bool teamsSet = PermittedTeams != Team.OtherAlive;
                 bool rolesSet = PermittedRoles != Roles.None;
@@ -149,7 +177,7 @@ namespace XazeAPI.API.Structures
             }
 
             // If player is further away from the Audio Source than the max distance
-            if (Vector3.Distance(_ApiPlayer.Position, User.Position) > MaxDistance)
+            if (Vector3.Distance(ApiPosition, User.Position) > MaxDistance)
             {
                 return false;
             }

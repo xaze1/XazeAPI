@@ -13,34 +13,44 @@ namespace XazeAPI.API
 
     public static class Logging
     {
-        public static void Info(string message)
+        public static void Info(params object[] args)
         {
-            Raw(FormatLog(message, Logger.InfoPrefix, Assembly.GetCallingAssembly()), ConsoleColor.Cyan);
+            Raw(FormatLog(string.Join(" ", args), Logger.InfoPrefix, Assembly.GetCallingAssembly()), ConsoleColor.Cyan);
         }
 
-        public static void Debug(string message, bool canBeSend = true)
+        public static void Debug(bool canBeSend, params object[] args)
         {
-            if (!canBeSend)
+            if (!canBeSend || args.Length == 0)
             {
                 return;
             }
 
-            Raw(FormatLog(message, Logger.DebugPrefix, Assembly.GetCallingAssembly()), ConsoleColor.DarkMagenta);
+            Raw(FormatLog(string.Join(" ", args), Logger.DebugPrefix, Assembly.GetCallingAssembly()), ConsoleColor.DarkMagenta);
         }
 
-        public static void Warn(string message)
+        public static void Debug(params object[] args)
         {
-            Raw(FormatLog(message, Logger.WarnPrefix, Assembly.GetCallingAssembly()), ConsoleColor.Yellow);
+            if (args.Length == 0)
+            {
+                return;
+            }
+
+            Raw(FormatLog(string.Join(" ", args), Logger.DebugPrefix, Assembly.GetCallingAssembly()), ConsoleColor.DarkMagenta);
         }
 
-        public static void Error(string message)
+        public static void Warn(params object[] args)
         {
-            Raw(FormatLog(message, Logger.ErrorPrefix, Assembly.GetCallingAssembly()), ConsoleColor.Red);
+            Raw(FormatLog(string.Join(" ", args), Logger.WarnPrefix, Assembly.GetCallingAssembly()), ConsoleColor.Yellow);
         }
 
-        public static void ServerLog(string message, ConsoleColor color)
+        public static void Error(params object[] args)
         {
-            Raw($"[{FormatAssemblyName(Assembly.GetCallingAssembly())}] {message}", color);
+            Raw(FormatLog(string.Join(" ", args), Logger.ErrorPrefix, Assembly.GetCallingAssembly()), ConsoleColor.Red);
+        }
+
+        public static void ServerLog(ConsoleColor color, params object[] args)
+        {
+            Raw($"[{FormatAssemblyName(Assembly.GetCallingAssembly())}] {string.Join(" ", args)}", color);
         }
         
         public static string FormatLog(object message, string prefix, Assembly assembly)

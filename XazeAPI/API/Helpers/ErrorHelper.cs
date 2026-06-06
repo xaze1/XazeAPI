@@ -9,7 +9,7 @@ using Mirror;
 using System;
 using System.Linq;
 using System.Text;
-using RueI.Extensions.HintBuilding;
+using RueI.Utils;
 using XazeAPI.API.Stats;
 
 namespace XazeAPI.API.Helpers
@@ -39,7 +39,7 @@ namespace XazeAPI.API.Helpers
             if (NetworkServer.active && exception != null && handleError == null)
             {
                 var sb = new StringBuilder()
-                    .SetAlignment(HintBuilding.AlignStyle.Center)
+                    .SetAlignment(RueI.Utils.Enums.AlignStyle.Center)
                     .SetColor(System.Drawing.Color.Red)
                     .AppendLine("EXCEPTION CAUGHT")
                     .CloseColor()
@@ -55,7 +55,7 @@ namespace XazeAPI.API.Helpers
                     .AppendLine("Source: " + exception.Source)
                     .AppendLine("TargetSite: " + exception.TargetSite)
                     .AppendLine("StackTrace:")
-                    .SetSize(65, RueI.Parsing.Enums.MeasurementUnit.Percentage)
+                    .SetSize(65, RueI.Utils.Enums.MeasurementUnit.Percentage)
                     .AppendLine(exception.StackTrace);
 
                 ServerRolesHelper.SendAdminChatMessage(sb.ToString(), "Plugin Exception caught");

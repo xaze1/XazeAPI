@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EclipsePlugin.API.CustomModules;
+using JetBrains.Annotations;
 using XazeAPI.API.Enums;
 using UnityEngine;
 using Utils.NonAllocLINQ;
@@ -23,13 +24,10 @@ using XazeAPI.API.Structures;
 
 namespace XazeAPI.API
 {
-    public class CustomPlayer : MonoBehaviour, IEquatable<CustomPlayer>
+    public class CustomPlayer : IEquatable<CustomPlayer>
     {
-        public static List<CustomPlayer> AllPlayers = new();
-
-        public static Action<CustomPlayer> OnPlayerAdded;
-        public static Action<CustomPlayer> OnPlayerRemoved;
-
+        public static readonly Dictionary<ReferenceHub, CustomPlayer> Dictionary = new();
+        
         public string Username
         {
             get => Player.DisplayName;
@@ -40,13 +38,9 @@ namespace XazeAPI.API
         {
             get
             {
-                if (Player.UserId.Contains("@"))
-                {
-                    int index = Player.UserId.IndexOf("@");
-                    return Player.UserId.Substring(0, index);
-                }
-
-                return Player.UserId.Substring(0, Player.UserId.Length - 6);
+                if (!Player.UserId.Contains("@")) return Player.UserId.Substring(0, Player.UserId.Length - 6);
+                int index = Player.UserId.IndexOf("@", StringComparison.Ordinal);
+                return Player.UserId.Substring(0, index);
             }
         }
 
@@ -74,16 +68,17 @@ namespace XazeAPI.API
                 if (Player.IsSCP)
                     return true;
 
-                return _isScp;
+                return field;
             }
-            set => _isScp = value;
+            set;
         }
-        
-        private bool _isScp { get; set; } = false;
 
 
-        public ReferenceHub ReferenceHub => ReferenceHub.GetHub(GameObject);
-        public Player Player => Player.Get(ReferenceHub);
+        [NotNull]
+        public ReferenceHub ReferenceHub { get; }
+
+        [NotNull]
+        public Player Player { get; }
 
         // Player Stats
         public PlayerKillStat KillStat => PlayerKillStat.GetStatOrDefault(ReferenceHub);
@@ -95,7 +90,7 @@ namespace XazeAPI.API
         // public CustomRoleManager CustomRoleManager => CustomRoleManager.Get(Player);
 
         // Base Values
-        public GameObject GameObject;
+        public GameObject GameObject => Player.GameObject;
         public PlayerRoleBase CurrentRole => ReferenceHub.roleManager.CurrentRole;
         // public CustomRoleBase CustomRole => CustomRoleManager.CurrentRole;
 
@@ -104,15 +99,15 @@ namespace XazeAPI.API
         public bool IsDisguised => Disguise != RoleTypeId.None;
         // public bool IsCustomZombie => ZombieRolesController.ActiveSpecialZombies.ContainsKey(ReferenceHub);
         // public bool IsCISpy => ChaosSpyHandler.CISpies.ContainsKey(Player.ReferenceHub);
-        public bool IsInvisible => (CurrentRole as IFpcRole).FpcModule.Motor.IsInvisible;
-        public bool IsInventoryFull => ReferenceHub.inventory.UserInventory.Items.Count == 8;
+        public bool IsInvisible => (CurrentRole as IFpcRole)?.FpcModule.Motor.IsInvisible?? false;
+        public bool IsInventoryFull => Player.IsInventoryFull;
 
         // Variables
-        public int CoinUses { get; set; }
-        public int SnakeHighScore { get; set; }
-        public float TotalDamageDone { get; set; }
-        public float TotalSCPDamageDone { get; set; }
-        public RoleTypeId LastRole { get; set; }
+        public int CoinUses { get; set; } = 0;
+        public int SnakeHighScore { get; set; } = 0;
+        public float TotalDamageDone { get; set; } = 0;
+        public float TotalSCPDamageDone { get; set; } = 0;
+        public RoleTypeId LastRole { get; set; } = RoleTypeId.None;
 
         // Var Getters
         public RoleTypeId Disguise => DisguiseHelper.DisguisedPlayers.TryGetValue(ReferenceHub, out DisguisedPlayer plr) ? plr.Disguise : RoleTypeId.None;
@@ -122,32 +117,14 @@ namespace XazeAPI.API
         {
             get
             {
-                using (ScpTicketsLoader scpTicketsLoader = new ScpTicketsLoader())
-                {
-                    return scpTicketsLoader.GetTickets(ReferenceHub, 10);
-                }
+                using ScpTicketsLoader scpTicketsLoader = new ScpTicketsLoader();
+                return scpTicketsLoader.GetTickets(ReferenceHub, 10);
             }
             set
             {
-                using (ScpTicketsLoader scpTickets = new ScpTicketsLoader())
-                {
-                    scpTickets.ModifyTickets(ReferenceHub, value);
-                }
+                using ScpTicketsLoader scpTickets = new ScpTicketsLoader();
+                scpTickets.ModifyTickets(ReferenceHub, value);
             }
-        }
-
-        public void Awake()
-        {
-            AllPlayers.Add(this);
-
-            GameObject = base.gameObject;
-
-            LastRole = RoleTypeId.None;
-            CoinUses = 0;
-            TotalDamageDone = 0;
-            TotalSCPDamageDone = 0;
-
-            OnPlayerAdded?.Invoke(this);
         }
 
         /// <summary>
@@ -157,7 +134,12 @@ namespace XazeAPI.API
         /// <returns>Return the active <see cref="CustomPlayer"/></returns>
         public static CustomPlayer Get(ReferenceHub hub)
         {
-            return AllPlayers.FirstOrDefault(plr => plr.ReferenceHub == hub);
+            if (Dictionary.TryGetValue(hub, out CustomPlayer cplr))
+            {
+                return cplr;
+            }
+            
+            return new CustomPlayer(hub);
         }
 
         /// <summary>
@@ -167,7 +149,12 @@ namespace XazeAPI.API
         /// <returns>Return the active <see cref="CustomPlayer"/></returns>
         public static CustomPlayer Get(Player plr)
         {
-            return AllPlayers.FirstOrDefault(plr => plr.ReferenceHub == plr.ReferenceHub);
+            if (Dictionary.TryGetValue(plr.ReferenceHub, out CustomPlayer cplr))
+            {
+                return cplr;
+            }
+            
+            return new CustomPlayer(plr);
         }
 
         /// <summary>
@@ -178,13 +165,8 @@ namespace XazeAPI.API
         /// <returns>Returns weither or not a <see cref="CustomPlayer"/> was found</returns>
         public static bool TryGet(ReferenceHub hub, out CustomPlayer cplr)
         {
-            cplr = null;
-            if (AllPlayers.TryGetFirst(plr => plr.ReferenceHub == hub, out cplr))
-            {
-                return cplr is not null;
-            }
-
-            return false;
+            cplr = Get(hub);
+            return cplr is not null;
         }
 
         /// <summary>
@@ -195,14 +177,8 @@ namespace XazeAPI.API
         /// <returns>Returns weither or not a <see cref="CustomPlayer"/> was found</returns>
         public static bool TryGet(Player ply, out CustomPlayer cplr)
         {
-            cplr = null;
-            
-            if (AllPlayers.TryGetFirst(plr => plr.ReferenceHub == ply.ReferenceHub, out cplr))
-            {
-                return cplr is not null;
-            }
-
-            return false;
+            cplr = Get(ply);
+            return cplr is not null;
         }
 
         /// <summary>
@@ -211,15 +187,10 @@ namespace XazeAPI.API
         /// <returns>Returns <see cref="CustomPlayer"/> object from player with highest damage</returns>
         public static CustomPlayer GetHighestDamageDone()
         {
-            CustomPlayer cplr = AllPlayers.Where(x => x.LastRole != RoleTypeId.None || x.CurrentRole.Team != PlayerRoles.Team.Dead)?.FirstOrDefault();
-            foreach (CustomPlayer player in AllPlayers)
+            var cplr = Dictionary.Values.Where(x => x.LastRole != RoleTypeId.None || x.CurrentRole.Team != Team.Dead)?.FirstOrDefault();
+            foreach (CustomPlayer player in Dictionary.Values.Where(plr => plr.LastRole != RoleTypeId.None && plr.CurrentRole.Team != Team.Dead))
             {
-                if (player.LastRole == RoleTypeId.None && player.CurrentRole.Team == PlayerRoles.Team.Dead)
-                {
-                    continue;
-                }
-
-                if (player.TotalDamageDone <= cplr.TotalDamageDone)
+                if (player.TotalDamageDone <= cplr?.TotalDamageDone)
                 {
                     continue;
                 }
@@ -236,15 +207,10 @@ namespace XazeAPI.API
         /// <returns>Returns <see cref="CustomPlayer"/> object from player with highest SCP damage</returns>
         public static CustomPlayer GetHighestSCPDamageDone()
         {
-            CustomPlayer cplr = AllPlayers.Where(x => x.LastRole != RoleTypeId.None || x.CurrentRole.Team != PlayerRoles.Team.Dead)?.FirstOrDefault();
-            foreach (CustomPlayer player in AllPlayers)
+            var cplr = Dictionary.Values.Where(x => x.LastRole != RoleTypeId.None || x.CurrentRole.Team != Team.Dead)?.FirstOrDefault();
+            foreach (CustomPlayer player in Dictionary.Values.Where(plr => plr.LastRole != RoleTypeId.None && plr.CurrentRole.Team != Team.Dead))
             {
-                if (player.LastRole == RoleTypeId.None && player.CurrentRole.Team == PlayerRoles.Team.Dead)
-                {
-                    continue;
-                }
-
-                if (player.TotalSCPDamageDone <= cplr.TotalSCPDamageDone)
+                if (player.TotalSCPDamageDone <= cplr?.TotalSCPDamageDone)
                 {
                     continue;
                 }
@@ -257,15 +223,10 @@ namespace XazeAPI.API
 
         public static CustomPlayer GetMostCoinFlips()
         {
-            CustomPlayer cplr = AllPlayers.Where(x => x.LastRole != RoleTypeId.None || x.CurrentRole.Team != PlayerRoles.Team.Dead)?.FirstOrDefault();
-            foreach (CustomPlayer player in AllPlayers)
+            var cplr = Dictionary.Values.Where(x => x.LastRole != RoleTypeId.None || x.CurrentRole.Team != Team.Dead)?.FirstOrDefault();
+            foreach (CustomPlayer player in Dictionary.Values.Where(plr => plr.LastRole != RoleTypeId.None && plr.CurrentRole.Team != Team.Dead))
             {
-                if (player.LastRole == RoleTypeId.None && player.CurrentRole.Team == PlayerRoles.Team.Dead)
-                {
-                    continue;
-                }
-
-                if (player.CoinUses <= cplr.CoinUses)
+                if (player.CoinUses <= cplr?.CoinUses)
                 {
                     continue;
                 }
@@ -278,15 +239,10 @@ namespace XazeAPI.API
 
         public static CustomPlayer GetHighestSnakeScore()
         {
-            CustomPlayer cplr = AllPlayers.Where(x => x.LastRole != RoleTypeId.None || x.CurrentRole.Team != PlayerRoles.Team.Dead)?.FirstOrDefault();
-            foreach (CustomPlayer player in AllPlayers)
+            var cplr = Dictionary.Values.Where(x => x.LastRole != RoleTypeId.None || x.CurrentRole.Team != Team.Dead)?.FirstOrDefault();
+            foreach (CustomPlayer player in Dictionary.Values.Where(plr => plr.LastRole != RoleTypeId.None && plr.CurrentRole.Team != Team.Dead))
             {
-                if (player.LastRole == RoleTypeId.None && player.CurrentRole.Team == PlayerRoles.Team.Dead)
-                {
-                    continue;
-                }
-
-                if (player.SnakeHighScore <= cplr.SnakeHighScore)
+                if (player.SnakeHighScore <= cplr?.SnakeHighScore)
                 {
                     continue;
                 }
@@ -304,9 +260,10 @@ namespace XazeAPI.API
         /// <returns>Returns a bool value for yes or no</returns>
         public bool IsFriendlyFire(CustomPlayer player)
         {
-            if (Team == player.Team) return true;
+            if (HitboxIdentity.IsDamageable(ReferenceHub, player.ReferenceHub)) 
+                return false;
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -315,7 +272,7 @@ namespace XazeAPI.API
         /// <returns>Returns <see cref="Dictionary{RoleTypeId, int}"/> with every SCP role and preference of the player</returns>
         public Dictionary<RoleTypeId, int> GetSCPPreferences()
         {
-            Dictionary<RoleTypeId, int> scpPreference = new Dictionary<RoleTypeId, int>();
+            var scpPreference = new Dictionary<RoleTypeId, int>();
 
             scpPreference.Clear();
 
@@ -330,28 +287,30 @@ namespace XazeAPI.API
             return scpPreference;
         }
 
-        public void OnDestroy()
-        {
-            OnPlayerRemoved?.Invoke(this);
-            AllPlayers.Remove(this);
-        }
-
         public void SendBroadcast(string message, ushort duration, Broadcast.BroadcastFlags type = Broadcast.BroadcastFlags.Normal, bool shouldClearPrevious = false)
         {
             Player.SendBroadcast(message, duration, type, shouldClearPrevious);
         }
 
-        public static void ResetDictionary()
-        {
-            foreach(var plr in AllPlayers)
-            {
-                plr.OnDestroy();
-            }
-        }
-
         public bool Equals(CustomPlayer other)
         {
-            return this.GameObject == other.GameObject;
+            return GameObject == other?.GameObject;
+        }
+
+        public CustomPlayer(Player plr)
+        {
+            Player = plr;
+            ReferenceHub = plr.ReferenceHub;
+            
+            Dictionary.Add(plr.ReferenceHub, this);
+        }
+
+        public CustomPlayer(ReferenceHub hub)
+        {
+            Player = Player.Get(hub);
+            ReferenceHub = hub;
+            
+            Dictionary.Add(hub, this);
         }
     }
 }

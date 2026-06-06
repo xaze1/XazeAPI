@@ -14,7 +14,7 @@ namespace XazeAPI.API.Stats.Player
 {
     public class PlayerDeathStat
     {
-        public static Action<LabApi.Features.Wrappers.Player> OnGainDeath;
+        public static event Action<LabApi.Features.Wrappers.Player> OnGainDeath;
         public PlayerDeathStat() 
         {
             Hub = null;
@@ -62,6 +62,7 @@ namespace XazeAPI.API.Stats.Player
                     }
                     catch
                     {
+                        // Ignore
                     }
                 }
 

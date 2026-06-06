@@ -9,6 +9,7 @@ using System;
 using System.Reflection;
 using EclipsePlugin.API.CustomModules;
 using HarmonyLib;
+using LabApi.Events.Handlers;
 using LabApi.Features;
 using LabApi.Loader.Features.Plugins;
 using LabApi.Loader.Features.Plugins.Enums;
@@ -17,6 +18,9 @@ using PlayerRoles.FirstPersonControl.NetworkMessages;
 using PlayerStatsSystem;
 using XazeAPI.API;
 using XazeAPI.API.AudioCore.FakePlayers;
+using XazeAPI.API.AudioCore.Speakers;
+using XazeAPI.API.Events;
+using XazeAPI.API.Events.Handler;
 using XazeAPI.API.Helpers;
 
 namespace XazeAPI;
@@ -27,14 +31,14 @@ public class APILoader : Plugin
     public override string Name => "XazeAPI";
     public override string Description => "API Library by xaze_";
     public override string Author => "xaze_";
-    public override Version Version => new Version(1, 0, 1);
+    public override Version Version => new(1, 1);
     public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
     public override LoadPriority Priority =>  LoadPriority.Highest;
 
     public static APILoader Singleton { get; private set; }
     public static bool Debug { get; set; } = false;
     public static readonly Assembly APIAssembly = Assembly.GetAssembly(typeof(APILoader));
-    public static readonly Harmony Patches = new Harmony("XAZE-API");
+    public static readonly Harmony Patches = new("XAZE-API");
 
     public void Setup()
     {
@@ -44,13 +48,27 @@ public class APILoader : Plugin
         }
         
         Singleton = this;
-        Logging.ServerLog("Thank you for using XazeAPI! Version " + Version, ConsoleColor.Magenta);
-        AudioManager.Awake(APIAssembly);
+        Logging.ServerLog(ConsoleColor.Magenta, "Thank you for using XazeAPI! Version", Version);
+        CustomSSSSync.Init();
+        XazeHandlerManager.InitializeEvents();
         
         Patches.PatchCategory(PatchGroup);
 
+        SpeakerLoader.OnTrackSelected += (speaker, track) =>
+        {
+            Logging.Debug("Track selected: " + track);
+        };
+        
+        SpeakerLoader.OnTrackSelecting += (speaker) =>
+        {
+            Logging.Debug("Selecting Track: " + speaker);
+        };
+        
         ReferenceHub.OnPlayerAdded += ctx => Timing.CallDelayed(0.1f, () => SetupPlayer(ctx));
         FpcServerPositionDistributor.RoleSyncEvent += DisguiseHelper.OnRoleSyncEvent;
+        PlayerEvents.Left += HintHelper.RemoveHub;
+        
+        XazeHandlerManager.InternalInvoke();
     }
     
     public override void Enable()
@@ -65,7 +83,7 @@ public class APILoader : Plugin
 
     private static void SetupPlayer(ReferenceHub hub)
     {
-        if (hub.Mode == CentralAuth.ClientInstanceMode.Host || hub.Mode == CentralAuth.ClientInstanceMode.DedicatedServer || AudioManager.ActiveFakes.Contains(hub)) return;
+        if (hub.Mode == CentralAuth.ClientInstanceMode.Host || hub.Mode == CentralAuth.ClientInstanceMode.DedicatedServer || FakeManager.ActiveFakes.Contains(hub)) return;
 
         CustomHealthStat healthStat;
         hub.playerStats._dictionarizedTypes[typeof(HealthStat)] = hub.playerStats.StatModules[Array.IndexOf(PlayerStats.DefinedModules, typeof(HealthStat))] = healthStat = new CustomHealthStat { Hub = hub };

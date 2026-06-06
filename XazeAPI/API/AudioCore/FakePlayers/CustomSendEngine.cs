@@ -9,12 +9,12 @@ using System;
 using XazeAPI.API.Structures;
 using System.Collections.Generic;
 using LabApi.Features.Wrappers;
-using PlayerRoles.Spectating;
 using SecretLabNAudio.Core.SendEngines;
 using UnityEngine;
 using VoiceChat;
 using VoiceChat.Networking;
 using XazeAPI.API.Events;
+using XazeAPI.API.Events.Handler;
 
 namespace XazeAPI.API.AudioCore.FakePlayers;
 

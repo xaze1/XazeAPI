@@ -20,14 +20,14 @@ namespace XazeAPI.API.Extensions
                 return true;
             }
 
-            if (wave.Timer.IsPaused)
+            if (wave.Timer.IsPaused || wave.Timer.IsForcefullyPaused)
             {
                 return true;
             }
 
-            if (wave is ILimitedWave limitedWave && limitedWave.RespawnTokens > 0)
+            if (wave is not ILimitedWave { RespawnTokens: > 0 })
             {
-                return false;
+                return true;
             }
 
             return false;

@@ -12,7 +12,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
-using Cassie;
 using CustomPlayerEffects;
 using Footprinting;
 using Interactables.Interobjects.DoorUtils;
@@ -29,7 +28,6 @@ using LightContainmentZoneDecontamination;
 using MapGeneration;
 using MEC;
 using Mirror;
-using NorthwoodLib.Pools;
 using PlayerRoles;
 using PlayerRoles.FirstPersonControl;
 using PlayerRoles.PlayableScps.Scp079;
@@ -38,9 +36,8 @@ using PlayerRoles.PlayableScps.Scp3114;
 using PlayerRoles.PlayableScps.Scp939;
 using PlayerRoles.Spectating;
 using PlayerStatsSystem;
-using Respawning;
-using RueI.Displays;
-using RueI.Extensions.HintBuilding;
+using RueI.API;
+using RueI.Utils;
 using UnityEngine;
 using XazeAPI.API.AudioCore.FakePlayers;
 using XazeAPI.API.Enums;
@@ -623,7 +620,7 @@ namespace XazeAPI.API.Helpers
             }
 
             /*
-            if (AudioManager.ActiveFakes.Contains(hub))
+            if (FakeManager.ActiveFakes.Contains(hub))
             {
                 return sb.ToString();
             }
@@ -684,14 +681,6 @@ namespace XazeAPI.API.Helpers
                 return "";
             else
                 return $"{Intensity}x ";
-        }
-
-        // This is unneeded.... why did I make this?
-        public static DisplayCore createCoreForPlayer(Player player)
-        {
-            ReferenceHub hub = player.ReferenceHub;
-            DisplayCore core = DisplayCore.Get(hub);
-            return core;
         }
 
         public static string getSpeedMult(this StatusEffectBase effect)
@@ -1875,16 +1864,12 @@ namespace XazeAPI.API.Helpers
                 return damage;
             }
 
-            foreach (AhpStat.AhpProcess activeProcess in stat._activeProcesses)
+            foreach (AhpProcess activeProcess in stat._activeProcesses)
             {
                 float num = damage * activeProcess.Efficacy;
-                if (num >= activeProcess.CurrentAmount)
-                {
-                    damage -= activeProcess.CurrentAmount;
-                    continue;
-                }
-
-                return damage - num;
+                if (num < activeProcess.CurrentAmount) 
+                    return damage - num;
+                damage -= activeProcess.CurrentAmount;
             }
 
             return damage;
@@ -1934,7 +1919,7 @@ namespace XazeAPI.API.Helpers
 
         public static bool CanBeSpawned(ReferenceHub hub)
         {
-            if (AudioManager.ActiveFakes.Contains(hub))
+            if (FakeManager.ActiveFakes.Contains(hub))
             {
                 return false;
             }

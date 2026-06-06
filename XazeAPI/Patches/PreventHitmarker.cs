@@ -11,6 +11,7 @@ using HarmonyLib;
 using NorthwoodLib.Pools;
 using PlayerStatsSystem;
 using XazeAPI.API.Events;
+using XazeAPI.API.Events.Handler;
 
 namespace XazeAPI.Patches
 {

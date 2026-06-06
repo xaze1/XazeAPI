@@ -36,7 +36,7 @@ namespace XazeAPI.API
             //ItemPickupBase.OnPickupAdded += HandlePickupCreation;
             AdminToys.AdminToyBase.OnRemoved += OnLightRemoved;
 
-            Logging.Debug("[LightSystem] Spawned!", APILoader.Debug);
+            Logging.Debug(APILoader.Debug, "[LightSystem] Spawned!");
         }
 
         void OnDestroy()
@@ -60,7 +60,7 @@ namespace XazeAPI.API
         {
             foreach(var config in Lights)
             {
-                if (config.LightToy.GameObject is null || config.TargetHub != null && config.TargetHub.gameObject is null)
+                if (config.LightToy.GameObject == null || config.TargetHub != null && config.TargetHub.gameObject == null)
                 {
                     continue;
                 }
@@ -99,11 +99,9 @@ namespace XazeAPI.API
                 }
 
                 float lightRange = config.Range;
-                if (config.TargetHub != null && (config.TargetHub.playerEffectsController.GetEffect<Invisible>().IsEnabled || config.TargetHub.roleManager.CurrentRole is IFpcRole fpc && fpc.FpcModule.Motor.IsInvisible))
-                {
-                    lightRange = 0;
-                }
-                else if (config.TargetRole is Scp106Role larry && larry.SubroutineModule.TryGetSubroutine(out Scp106StalkAbility stalk) && stalk.StalkActive)
+                if (config.TargetHub != null && 
+                    (config.TargetHub.playerEffectsController.GetEffect<Invisible>().IsEnabled || config.TargetHub.roleManager.CurrentRole is IFpcRole fpc && fpc.FpcModule.Motor.IsInvisible) || 
+                    config.TargetRole is Scp106Role larry && larry.SubroutineModule.TryGetSubroutine(out Scp106StalkAbility stalk) && stalk.StalkActive)
                 {
                     lightRange = 0;
                 }

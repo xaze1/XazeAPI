@@ -17,7 +17,7 @@ namespace XazeAPI.Patches
     {
         public static bool Prefix(PlayerStats __instance, DamageHandlerBase handler)
         {
-            if (!AudioManager.ActiveFakes.Contains(__instance._hub))
+            if (!FakeManager.ActiveFakes.Contains(__instance._hub))
             {
                 return true;
             }
@@ -32,7 +32,7 @@ namespace XazeAPI.Patches
     {
         public static bool Prefix(PlayerStats __instance, DamageHandlerBase handler)
         {
-            if (!AudioManager.ActiveFakes.Contains(__instance._hub))
+            if (!FakeManager.ActiveFakes.Contains(__instance._hub))
             {
                 return true;
             }

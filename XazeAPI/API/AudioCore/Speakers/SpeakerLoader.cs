@@ -8,38 +8,37 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using JetBrains.Annotations;
 using LabApi.Features.Wrappers;
 using SecretLabNAudio.Core;
 using SecretLabNAudio.Core.Extensions;
 using SecretLabNAudio.Core.Pools;
+using SecretLabNAudio.Core.SendEngines;
 using UnityEngine;
-using VoiceChat;
 using XazeAPI.API.Helpers;
 using XazeAPI.API.Stats;
 using XazeAPI.API.Structures;
 
-namespace XazeAPI.API.AudioCore.FakePlayers;
+namespace XazeAPI.API.AudioCore.Speakers;
 
-// It's a public "FUCK YOU SEALED CLASS"
-public class FakeLoader : MonoBehaviour
+public class SpeakerLoader : MonoBehaviour
 {
-    public delegate void TrackFinished(FakeLoader fakeLoader, string track);
+    public delegate void TrackFinished(SpeakerLoader fakeLoader, string track);
     
-    public static Dictionary<ReferenceHub, FakeLoader> AudioPlayers = new();
-    public static event Action<FakeLoader> OnTrackSelecting;
-    public static event Action<FakeLoader> OnTrackSelected;
+    public static Dictionary<SpeakerToy, SpeakerLoader> AudioSpeakers = new();
+    public static event Action<SpeakerLoader> OnTrackSelecting;
+    public static event Action<SpeakerLoader, string> OnTrackSelected;
     public static event TrackFinished OnFinishedTrack;
     
-    public Player Target;
-    public Player Dummy => Player.Get(_hub);
-    public CustomSendEngine SendEngine { private set; get; }
+    public CustomSpeakerEngine SendEngine { private set; get; }
     public TimeSpan CurrentTimePosition => _audioPlayer.CurrentTime;
     public bool IsPlaying => !_audioPlayer.HasEnded;
     public bool IsFinished => _audioPlayer.HasEnded;
-    public VoiceChatChannel Channel
+    
+    [CanBeNull] public event Action Ended
     {
-        get => SendEngine.Channel;
-        set => SendEngine.Channel = value;
+        add => _audioPlayer.Ended += value;
+        remove => _audioPlayer.Ended -= value;
     }
 
     public FakePlayerCustomHearSoundCheck HearOverride
@@ -47,15 +46,26 @@ public class FakeLoader : MonoBehaviour
         get => SendEngine.HearOverride;
         set => SendEngine.HearOverride = value;
     }
+
+    public SpeakerSettings Settings
+    {
+        get => new()
+        {
+            IsSpatial = _audioPlayer.Speaker.IsSpatial,
+            MaxDistance =  _audioPlayer.Speaker.MaxDistance,
+            MinDistance =  _audioPlayer.Speaker.MinDistance,
+            Volume =  _audioPlayer.Speaker.Volume,
+        };
+        set => _audioPlayer.ApplySettings(value);
+    }
     
     public double VolumePercentage
     {
-        get => _audioPlayer.MasterAmplification * 100;
+        get => _audioPlayer.MasterAmplification * 200;
         set => SetVolume(value);
     }
     
     private AudioPlayer _audioPlayer;
-    private ReferenceHub _hub;
     private string _trackName;
 
     public void Play(string filePath)
@@ -65,7 +75,7 @@ public class FakeLoader : MonoBehaviour
             OnTrackSelecting?.Invoke(this);
             _trackName = filePath;
             _audioPlayer.UseFile(filePath);
-            OnTrackSelected?.Invoke(this);
+            OnTrackSelected?.Invoke(this, _trackName);
         }
         catch (FileNotFoundException)
         {
@@ -84,19 +94,16 @@ public class FakeLoader : MonoBehaviour
         _audioPlayer.WithoutProvider();
     }
 
-    public void SetTarget(ReferenceHub target)
+    public SpeakerLoader SetVolume(double volume)
     {
-        Target = Player.Get(target);
+        _audioPlayer.WithMasterAmplification((float)volume/200);
+        return this;
     }
 
-    public void SetChannel(VoiceChatChannel channel)
+    public SpeakerLoader SetPersonalization(Func<Player, SpeakerSettings?, SpeakerSettings> personalization)
     {
-        SendEngine.Channel = channel;
-    }
-
-    public void SetVolume(double volume)
-    {
-        _audioPlayer.WithMasterAmplification((float)volume/100);
+        _audioPlayer.WithLivePersonalizedSendEngine((player, current) => personalization(player, current),SendEngine);
+        return this;
     }
 
     public void Destroy()
@@ -111,35 +118,22 @@ public class FakeLoader : MonoBehaviour
 
     private void Awake()
     {
-        _hub = ReferenceHub.GetHub(gameObject);
-        if (_hub == null)
+        _audioPlayer = Player.TryGet(gameObject, out _) ? AudioPlayerPool.Rent(SpeakerSettings.Default, gameObject.transform) : AudioPlayerPool.Rent(SpeakerSettings.GloballyAudible with
         {
-            Destroy(this);
-            return;
-        }
-
-        _audioPlayer = AudioPlayerPool.Rent(SpeakerSettings.Default, Dummy?.GameObject?.transform);
+            IsSpatial = false
+        });
         _audioPlayer.AlwaysRead = false;
-        SendEngine = new(Dummy, VoiceChatChannel.RoundSummary);
+        SendEngine = new();
         _audioPlayer.WithSendEngine(SendEngine);
         _audioPlayer.Ended += OnEnded;
-        AudioPlayers[_hub] = this;
-    }
-
-    private void FixedUpdate()
-    {
-        if (Target == null || !Dummy.IsAlive || !Target.IsAlive)
-        {
-            return;
-        }
         
-        Dummy.Position = Target.Position;
+        AudioSpeakers[_audioPlayer.Speaker] = this;
     }
 
     private void OnDestroy()
     {
         Stop();
-        AudioPlayers.Remove(_hub);
+        AudioSpeakers.Remove(_audioPlayer.Speaker);
         AudioPlayerPool.Return(_audioPlayer);
     }
 }

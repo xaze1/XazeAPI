@@ -7,7 +7,7 @@
 
 using LabApi.Events;
 
-namespace XazeAPI.API.Events;
+namespace XazeAPI.API.Events.Handler;
 
 public static class XazeEvents 
 {

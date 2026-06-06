@@ -7,9 +7,6 @@
 
 using System;
 using PlayerRoles;
-using RueI.Displays;
-using RueI.Elements;
-using RueI.Extensions.HintBuilding;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -18,6 +15,9 @@ using LabApi.Features.Extensions;
 using LabApi.Features.Wrappers;
 using Mirror;
 using NorthwoodLib.Pools;
+using RueI.API;
+using RueI.API.Elements;
+using RueI.Utils;
 using XazeAPI.API.Structures;
 
 namespace XazeAPI.API.Helpers
@@ -25,7 +25,7 @@ namespace XazeAPI.API.Helpers
     public static class DisguiseHelper
     {
         public static readonly Dictionary<ReferenceHub, DisguisedPlayer> DisguisedPlayers = new();
-        public static readonly IElemReference<SetElement> DisguiseReference = DisplayCore.GetReference<SetElement>();
+        public static readonly Tag DisguiseReference = new("Xaze-DisguiseReference");
 
         public static RoleTypeId OnRoleSyncEvent(ReferenceHub user, ReferenceHub receiver, RoleTypeId role, NetworkWriter writer)
         {
@@ -72,18 +72,8 @@ namespace XazeAPI.API.Helpers
                 return;
             }
 
-            DisplayCore core = DisplayCore.Get(player);
-            SetElement element = core.GetElement(DisguiseReference);
-
-            if (element is null)
-            {
-                return;
-            }
-            
-            element.Content = "";
-            element.Position = 1100;
-            core.RemoveReference(DisguiseReference);
-            core.Update();
+            var display = RueDisplay.Get(player);
+            display.Remove(DisguiseReference);
 
             DisguisedPlayers.Remove(player);
         }
@@ -137,18 +127,13 @@ namespace XazeAPI.API.Helpers
             
             var roleBase = disguise.Disguise.GetRoleBase();
 
+            var display = RueDisplay.Get(player);
             StringBuilder sb = StringBuilderPool.Shared.Rent();
-            sb.SetSize(65, RueI.Parsing.Enums.MeasurementUnit.Percentage)
-                .SetAlignment(HintBuilding.AlignStyle.Left)
+            sb.SetSize(65, RueI.Utils.Enums.MeasurementUnit.Percentage)
+                .SetAlignment(RueI.Utils.Enums.AlignStyle.Left)
                 .Append("Current Disguise: " + roleBase.RoleName);
-
-            DisplayCore core = DisplayCore.Get(player);
-            SetElement element = core.GetElementOrNew(DisguiseReference, () => new SetElement(150, sb.ToString()));
-
-            core.AddAsReference(DisguiseReference, element);
-            element.Content = StringBuilderPool.Shared.ToStringReturn(sb);
-            element.Position = 150;
-            core.Update();
+            
+            display.Show(DisguiseReference, new BasicElement(150, StringBuilderPool.Shared.ToStringReturn(sb)));
             
             DisguisedPlayers[player] = disguise;
         }

@@ -14,40 +14,33 @@ namespace XazeAPI.API;
 
 public class StopTimer(TimeSpan duration, Action callback = null)
 {
-    private long _startTimestamp = 0L;
-    private long elapsed = 0;
-    private bool _isRunning = false;
+    private long _startTimestamp;
     private CancellationTokenSource cts;
+    private readonly TimeSpan _duration = duration;
+    private bool _finished;
 
-    public bool IsRunning => _isRunning;
+    public bool IsRunning { get; private set; }
     public TimeSpan Elapsed => GetElapsedTime();
-    public TimeSpan Remaining
-    {
-        get
-        {
-            double remainingSeconds = Math.Max(0, field.TotalSeconds - Elapsed.TotalSeconds);
-            return TimeSpan.FromSeconds(remainingSeconds);
-        }
-    } = duration;
+    public TimeSpan Remaining => _duration - Elapsed > TimeSpan.Zero? _duration - Elapsed : TimeSpan.Zero;
 
     public void Start()
     {
-        if (_isRunning)
+        if (IsRunning)
             return;
         
         Stop();
+        _finished = false;
         _startTimestamp = Stopwatch.GetTimestamp();
-        _isRunning = true;
+        IsRunning = true;
         cts = new CancellationTokenSource();
-        RunTimerAsync(cts.Token);
+        _ = RunTimerAsync(cts.Token);
     }
 
     public void Stop()
     {
-        if (_isRunning)
+        if (IsRunning)
         {
-            elapsed += Stopwatch.GetTimestamp() - _startTimestamp;
-            _isRunning = false;
+            IsRunning = false;
         }
 
         cts?.Cancel();
@@ -57,18 +50,18 @@ public class StopTimer(TimeSpan duration, Action callback = null)
     public void Reset()
     {
         Stop();
-        elapsed = 0;
         _startTimestamp = 0L;
     }
 
-    private async void RunTimerAsync(CancellationToken token)
+    private async Task RunTimerAsync(CancellationToken token)
     {
         try
         {
-            await Task.Delay(duration, token);
+            await Task.Delay(_duration, token);
 
             if (!token.IsCancellationRequested)
             {
+                _finished = true;
                 Stop();
                 callback?.Invoke();
             }
@@ -79,20 +72,18 @@ public class StopTimer(TimeSpan duration, Action callback = null)
         }
     }
 
-    private long GetRawElapsedTicks()
-    {
-        long raw = elapsed;
-        if (_isRunning)
-        {
-            raw += Stopwatch.GetTimestamp() - _startTimestamp;
-        }
-        return raw;
-    }
-
     private TimeSpan GetElapsedTime()
     {
-        long rawTicks = GetRawElapsedTicks();
-        double seconds = (double)rawTicks / Stopwatch.Frequency;
-        return TimeSpan.FromSeconds(seconds);
+        if (_finished)
+        {
+            return _duration;
+        }
+        
+        if (!IsRunning)
+        {
+            return TimeSpan.Zero;
+        }
+        
+        return TimeSpan.FromSeconds((Stopwatch.GetTimestamp() - _startTimestamp) / (double)Stopwatch.Frequency);
     }
 }

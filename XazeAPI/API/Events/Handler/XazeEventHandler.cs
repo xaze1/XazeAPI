@@ -6,9 +6,8 @@
 // I <3 🦈s :3c
 
 using LabApi.Events.CustomHandlers;
-using XazeAPI.API.Events;
 
-namespace XazeAPI.API;
+namespace XazeAPI.API.Events.Handler;
 
 public abstract class XazeEventHandler : CustomEventsHandler
 {

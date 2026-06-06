@@ -12,7 +12,6 @@ using XazeAPI.API.Helpers;
 
 namespace XazeAPI.API.Extensions
 {
-    using CommandSystem;
     using CustomPlayerEffects;
     using Footprinting;
     using InventorySystem;
@@ -26,9 +25,7 @@ namespace XazeAPI.API.Extensions
     using PlayerRoles.Ragdolls;
     using PlayerRoles.Spectating;
     using PlayerStatsSystem;
-    using RemoteAdmin;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using UnityEngine;
@@ -282,9 +279,6 @@ namespace XazeAPI.API.Extensions
         {
             target.VaporizePlayer(attacker.ReferenceHub);
         }
-
-        /*
-        */
 
         public static void Explode(this Player plr)
         {
