@@ -12,20 +12,26 @@ namespace XazeAPI.API.Events.Handler;
 public static class XazeEvents 
 {
     public static event LabEventHandler<PlayerHearingFakePlayer> HearingFake;
-    public static void OnPlayerHearingFake(PlayerHearingFakePlayer hearingFakePlayer)
+    public static void OnPlayerHearingFake(PlayerHearingFakePlayer args)
     {
-        HearingFake.InvokeEvent(hearingFakePlayer);
+        HearingFake.InvokeEvent(args);
     }
     
     public static event LabEventHandler<PreventHitmarkerEvent> PreventHitmarker;
-    public static void OnServerPreventHitmarker(PreventHitmarkerEvent preventingHitmarker)
+    public static void OnServerPreventHitmarker(PreventHitmarkerEvent args)
     {
-        PreventHitmarker.InvokeEvent(preventingHitmarker);
+        PreventHitmarker.InvokeEvent(args);
     }
     
     public static event LabEventHandler<PlayerScaleChanging> ScaleChanging;
-    public static void OnPlayerScaleChanging(PlayerScaleChanging scaleChanging)
+    public static void OnPlayerScaleChanging(PlayerScaleChanging args)
     {
-        ScaleChanging.InvokeEvent(scaleChanging);
+        ScaleChanging.InvokeEvent(args);
+    }
+    
+    public static event LabEventHandler<PlayerHurting> Hurting;
+    public static void OnPlayerHurting(PlayerHurting args)
+    {
+        Hurting.InvokeEvent(args);
     }
 }

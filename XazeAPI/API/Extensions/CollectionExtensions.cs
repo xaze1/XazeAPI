@@ -26,7 +26,9 @@ public static class CollectionExtensions
         /// 
         public void Do(Action<T> action)
         {
-            if (sequence is null) return;
+            if (sequence is null) 
+                return;
+            
             using var enumerator = sequence.GetEnumerator();
             while (enumerator.MoveNext()) action(enumerator.Current);
         }

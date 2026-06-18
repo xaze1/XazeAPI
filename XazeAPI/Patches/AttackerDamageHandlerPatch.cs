@@ -12,6 +12,7 @@ using HarmonyLib;
 using NorthwoodLib.Pools;
 using PlayerStatsSystem;
 
+/*
 namespace XazeAPI.Patches
 {
     [HarmonyPatch(typeof(AttackerDamageHandler), nameof(AttackerDamageHandler.ProcessDamage))]
@@ -50,7 +51,6 @@ namespace XazeAPI.Patches
 
         public static void CustomEffectsMethod(AttackerDamageHandler __instance)
         {
-            /*
             try
             {
                 if (CustomEffectsController.TryGet(ply, out var controller))
@@ -71,7 +71,8 @@ namespace XazeAPI.Patches
             catch (Exception ex)
             {
                 Logging.Error($"[CustomEffects - AtkHandlerPatch] Failed applying custom effects\n" + ex);
-            }*/
+            }
         }
     }
 }
+*/

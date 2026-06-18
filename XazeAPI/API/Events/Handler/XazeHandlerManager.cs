@@ -57,7 +57,6 @@ public static class XazeHandlerManager
         MethodInfo method = handlerType.GetMethod(methodDelegate, BindingFlags.Instance | BindingFlags.Public);
         if (method == null || !IsOverride(method))
         {
-            Logging.Error("[EventHandler/CheckEvent] method null or override check failed");
             return;
         }
       
@@ -81,8 +80,9 @@ public static class XazeHandlerManager
 
     internal static void InitializeEvents()
     {
-        AddEvent(nameof(XazeEvents.OnPlayerHearingFake), typeof(XazeEvents), nameof(XazeEvents.HearingFake));
-        AddEvent(nameof(XazeEvents.OnPlayerScaleChanging), typeof(XazeEvents), nameof(XazeEvents.ScaleChanging));
+        AddEvent(nameof(XazeEventHandler.OnPlayerHearingFakePlayer), typeof(XazeEvents), nameof(XazeEvents.HearingFake));
+        AddEvent(nameof(XazeEventHandler.OnPlayerScaleChanging), typeof(XazeEvents), nameof(XazeEvents.ScaleChanging));
+        AddEvent(nameof(XazeEventHandler.OnPlayerHurting), typeof(XazeEvents), nameof(XazeEvents.Hurting));
         
         RegisterPluginEvents.InvokeEvent();
         Initialized = true;

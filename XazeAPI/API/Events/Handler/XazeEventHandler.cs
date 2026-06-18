@@ -11,11 +11,15 @@ namespace XazeAPI.API.Events.Handler;
 
 public abstract class XazeEventHandler : CustomEventsHandler
 {
-    public virtual void OnPlayerHearingFakePlayer(PlayerHearingFakePlayer hearingFakePlayer)
+    public virtual void OnPlayerHearingFakePlayer(PlayerHearingFakePlayer args)
     {
     }
     
-    public virtual void OnPlayerScaleChanging(PlayerScaleChanging scaleChanging)
+    public virtual void OnPlayerScaleChanging(PlayerScaleChanging args)
+    {
+    }
+    
+    public virtual void OnPlayerHurting(PlayerHurting args)
     {
     }
 }
