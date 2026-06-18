@@ -17,5 +17,5 @@ public class PlayerHurting(ReferenceHub attacker, ReferenceHub target, DamageHan
 {
     public Player Player { get; } = Player.Get(target);
     [CanBeNull] public Player Attacker { get; } = Player.Get(attacker);
-    public StandardDamageHandler DamageHandler { get; } = handler as StandardDamageHandler;
+    public StandardDamageHandler DamageHandler { get; set; } = handler as StandardDamageHandler;
 }
