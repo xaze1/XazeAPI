@@ -23,7 +23,7 @@ public class PlayerStatsPatch
             attacker = attck.Attacker.Hub;
         
         var ev = new PlayerHurting(attacker, __instance._hub, handler);
-        XazeEvents.OnPlayerHurting(ev);
+        XazeEvents.OnHurting(ev);
         handler = ev.DamageHandler;
     }
 }

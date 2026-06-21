@@ -30,7 +30,7 @@ public static class XazeEvents
     }
     
     public static event LabEventHandler<PlayerHurting> Hurting;
-    public static void OnPlayerHurting(PlayerHurting args)
+    public static void OnHurting(PlayerHurting args)
     {
         Hurting.InvokeEvent(args);
     }

@@ -82,7 +82,7 @@ public static class XazeHandlerManager
     {
         AddEvent(nameof(XazeEventHandler.OnPlayerHearingFakePlayer), typeof(XazeEvents), nameof(XazeEvents.HearingFake));
         AddEvent(nameof(XazeEventHandler.OnPlayerScaleChanging), typeof(XazeEvents), nameof(XazeEvents.ScaleChanging));
-        AddEvent(nameof(XazeEventHandler.OnPlayerHurting), typeof(XazeEvents), nameof(XazeEvents.Hurting));
+        AddEvent(nameof(XazeEventHandler.OnHurting), typeof(XazeEvents), nameof(XazeEvents.Hurting));
         
         RegisterPluginEvents.InvokeEvent();
         Initialized = true;

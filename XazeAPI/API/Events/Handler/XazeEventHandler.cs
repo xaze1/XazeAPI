@@ -19,7 +19,7 @@ public abstract class XazeEventHandler : CustomEventsHandler
     {
     }
     
-    public virtual void OnPlayerHurting(PlayerHurting args)
+    public virtual void OnHurting(PlayerHurting args)
     {
     }
 }
