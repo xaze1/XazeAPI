@@ -85,7 +85,7 @@ namespace XazeAPI.API
             if (_settingIds.Contains(setting.SettingId) || settings.Any(s => s.SettingId == setting.SettingId))
                 throw new ArgumentException("ServerSpecificSettingBase already exists with the specified SettingId.");
             
-            settings.AddItem(setting);
+            settings.Add(setting);
             DefinedSettings[hub] = settings;
             
             if (!NetworkServer.active)
