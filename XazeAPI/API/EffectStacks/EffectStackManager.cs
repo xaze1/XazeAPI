@@ -138,6 +138,48 @@ public class EffectStackManager : MonoBehaviour
         stacks.Add(stack);
         UpdateIntensity(effectType, stacks);
     }
+    
+    public bool RemoveStack<T>(EffectStack stack) where T : StatusEffectBase
+    {
+        if (_owner == null)
+            return false;
+
+        return RemoveStack(typeof(T), stack);
+    }
+    
+    public bool RemoveStack(Type effectType, EffectStack stack)
+    {
+        if (_owner == null)
+            return false;
+        
+        if (!_stacks.TryGetValue(effectType, out var stacks))
+            return false;
+        
+        var outcome = stacks.Remove(stack);
+        UpdateIntensity(effectType, stacks);
+        return outcome;
+    }
+    
+    public bool RemoveStacks<T>() where T : StatusEffectBase
+    {
+        if (_owner == null)
+            return false;
+
+        return RemoveStacks(typeof(T));
+    }
+    
+    public bool RemoveStacks(Type effectType)
+    {
+        if (_owner == null)
+            return false;
+        
+        var removedStacks = _stacks.Remove(effectType);
+        if (!_owner.TryGetEffect(effectType, out var effect) || !effect.IsEnabled) 
+            return removedStacks;
+        
+        effect.ServerDisable();
+        return true;
+    }
 
     public static bool TryGet([CanBeNull] Player plr, out EffectStackManager manager)
     {

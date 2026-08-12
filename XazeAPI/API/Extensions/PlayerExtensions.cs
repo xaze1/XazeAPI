@@ -284,18 +284,49 @@ namespace XazeAPI.API.Extensions
                 target.ReferenceHub.VaporizePlayer(attacker?.ReferenceHub);
             }
             
+            public void AddEffect<T>(Func<byte> intensityCalc, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensityCalc, duration);
             public void AddEffect<T>(byte intensity, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensity, duration);
+            public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => target.AddEffect(typeof(T), stack);
 
-            public void AddEffect(Type effectType, byte intensity, float duration = 0)
-            {
-                if (!EffectStackManager.TryGet(target, out var manager))
-                    return;
-                
-                manager.AddStack(effectType, new EffectStack
+            public void AddEffect(Type effectType, byte intensity, float duration = 0) => target.AddEffect(
+                effectType,
+                new EffectStack
                 {
                     Intensity = intensity,
                     Duration = duration
                 });
+
+            public void AddEffect(Type effectType, Func<byte> intensityCalc, float duration = 0) => target.AddEffect(
+                effectType, 
+                new EffectStack(intensityCalc)
+                {
+                    Duration = duration
+                });
+
+            public void AddEffect(Type effectType, EffectStack stack)
+            {
+                if (!EffectStackManager.TryGet(target, out var manager))
+                    return;
+                
+                manager.AddStack(effectType, stack);
+            }
+
+            public bool RemoveEffect<T>(EffectStack stack) where T : StatusEffectBase => target.RemoveEffect(typeof(T), stack);
+            public bool RemoveEffect(Type effectType, EffectStack stack)
+            {
+                if (!EffectStackManager.TryGet(target, out var manager))
+                    return false;
+                
+                return manager.RemoveStack(effectType, stack);
+            }
+
+            public bool RemoveEffect<T>() where T : StatusEffectBase => target.RemoveEffect(typeof(T));
+            public bool RemoveEffect(Type effectType)
+            {
+                if (!EffectStackManager.TryGet(target, out var manager))
+                    return false;
+                
+                return manager.RemoveStacks(effectType);
             }
 
             internal void EnableEffect(Type effectType, byte intensity, float duration = 0, bool addDuration = false)
