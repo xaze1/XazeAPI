@@ -25,7 +25,7 @@ public class EffectStackManager : MonoBehaviour
     public static Dictionary<Player, EffectStackManager> List { get; } = new();
     
     private Player _owner;
-    private readonly Dictionary<Type, List<EffectStack>> _stacks = new();
+    public Dictionary<Type, List<EffectStack>> Stacks { get; } = new();
 
     private void Awake()
     {
@@ -51,7 +51,7 @@ public class EffectStackManager : MonoBehaviour
         if (_owner == null)
             return;
 
-        foreach (var pair in _stacks)
+        foreach (var pair in Stacks)
         {
             var stacks = pair.Value;
             for (int i = stacks.Count - 1; i >= 0; i--)
@@ -76,7 +76,7 @@ public class EffectStackManager : MonoBehaviour
         if (args.OldRole == RoleTypeId.None || args.OldRole.GetTeam() == Team.Dead || args.NewRole.Team != Team.Dead)
             return;
         
-        _stacks.Clear();
+        Stacks.Clear();
         _owner.DisableAllEffects();
     }
 
@@ -129,10 +129,10 @@ public class EffectStackManager : MonoBehaviour
         if (_owner == null)
             return;
 
-        if (!_stacks.TryGetValue(effectType, out var stacks))
+        if (!Stacks.TryGetValue(effectType, out var stacks))
         {
             stacks = new();
-            _stacks.Add(effectType, stacks);
+            Stacks.Add(effectType, stacks);
         }
         
         stacks.Add(stack);
@@ -152,7 +152,7 @@ public class EffectStackManager : MonoBehaviour
         if (_owner == null)
             return false;
         
-        if (!_stacks.TryGetValue(effectType, out var stacks))
+        if (!Stacks.TryGetValue(effectType, out var stacks))
             return false;
         
         var outcome = stacks.Remove(stack);
@@ -173,7 +173,7 @@ public class EffectStackManager : MonoBehaviour
         if (_owner == null)
             return false;
         
-        var removedStacks = _stacks.Remove(effectType);
+        var removedStacks = Stacks.Remove(effectType);
         if (!_owner.TryGetEffect(effectType, out var effect) || !effect.IsEnabled) 
             return removedStacks;
         
