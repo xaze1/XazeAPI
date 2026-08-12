@@ -13,6 +13,7 @@ using JetBrains.Annotations;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
+using NorthwoodLib.Pools;
 using PlayerRoles;
 using UnityEngine;
 
@@ -51,6 +52,7 @@ public class EffectStackManager : MonoBehaviour
         if (_owner == null)
             return;
 
+        var empty = ListPool<Type>.Shared.Rent();
         foreach (var pair in Stacks)
         {
             var stacks = pair.Value;
@@ -59,13 +61,22 @@ public class EffectStackManager : MonoBehaviour
                 var stack = stacks[i];
                 stack.RefreshTime(Time.deltaTime);
                 
-                if (stack.Duration == 0 || stack.TimeLeft > 0)
+                if (stack.Duration == 0 || stack.TimeLeft > 0 || !stack.CanBeRemoved)
                     continue;
                 stacks.RemoveAt(i);
             }
             
             UpdateIntensity(pair.Key, stacks);
+            if (stacks.Count > 0)
+                continue;
+            empty.Add(pair.Key);
         }
+        
+        if (empty.Count <= 0)
+            return;
+        
+        // Remove empty Keys
+        empty.Do(e => Stacks.Remove(e));
     }
 
     private void OnRoleChanged(PlayerChangedRoleEventArgs args)

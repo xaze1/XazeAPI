@@ -248,9 +248,9 @@ namespace XazeAPI.API.Extensions
                 target.playerStats.KillPlayer(vaporizeHandler);
             }
             
-            public void AddEffect<T>(byte intensity, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensity, duration);
+            public void AddEffect<T>(byte intensity = 1, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensity, duration);
 
-            public void AddEffect(Type effectType, byte intensity, float duration = 0)
+            public void AddEffect(Type effectType, byte intensity = 1, float duration = 0)
             {
                 if (!EffectStackManager.TryGet(target, out var manager))
                     return;
@@ -260,6 +260,24 @@ namespace XazeAPI.API.Extensions
                     Intensity = intensity,
                     Duration = duration
                 });
+            }
+            
+            public bool RemoveEffect<T>(EffectStack stack) where T : StatusEffectBase => target.RemoveEffect(typeof(T), stack);
+            public bool RemoveEffect(Type effectType, EffectStack stack)
+            {
+                if (!EffectStackManager.TryGet(target, out var manager))
+                    return false;
+                
+                return manager.RemoveStack(effectType, stack);
+            }
+
+            public bool RemoveEffect<T>() where T : StatusEffectBase => target.RemoveEffect(typeof(T));
+            public bool RemoveEffect(Type effectType)
+            {
+                if (!EffectStackManager.TryGet(target, out var manager))
+                    return false;
+                
+                return manager.RemoveStacks(effectType);
             }
         }
 
@@ -285,10 +303,10 @@ namespace XazeAPI.API.Extensions
             }
             
             public void AddEffect<T>(Func<byte> intensityCalc, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensityCalc, duration);
-            public void AddEffect<T>(byte intensity, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensity, duration);
+            public void AddEffect<T>(byte intensity = 1, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensity, duration);
             public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => target.AddEffect(typeof(T), stack);
 
-            public void AddEffect(Type effectType, byte intensity, float duration = 0) => target.AddEffect(
+            public void AddEffect(Type effectType, byte intensity = 1, float duration = 0) => target.AddEffect(
                 effectType,
                 new EffectStack
                 {

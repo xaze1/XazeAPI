@@ -46,6 +46,7 @@ public class EffectStack()
         set => field = Mathf.Max(0f, value);
     } = 0;
 
+    public bool CanBeRemoved { get; set; } = true;
     [CanBeNull] private readonly Func<byte> _intensityCalc;
 
     public void RefreshTime(float deltaTime)
