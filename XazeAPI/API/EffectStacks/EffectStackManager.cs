@@ -139,14 +139,27 @@ public class EffectStackManager : MonoBehaviour
         UpdateIntensity(effectType, stacks);
     }
 
-    public static bool TryGet(Player plr, out EffectStackManager manager)
+    public static bool TryGet([CanBeNull] Player plr, out EffectStackManager manager)
     {
-        return List.TryGetValue(plr, out manager);
+        if (plr != null)
+            return List.TryGetValue(plr, out manager);
+        
+        manager = null;
+        return false;
+
     }
 
     [CanBeNull]
-    public static EffectStackManager Get(Player plr)
+    public static EffectStackManager Get([CanBeNull] Player plr)
     {
+        if (plr == null)
+            return null;
+        
         return List.TryGetValue(plr, out var manager)? manager : null;
     }
+
+    public static bool TryGet([CanBeNull] ReferenceHub hub, out EffectStackManager manager) => TryGet(Player.Get(hub), out manager);
+
+    [CanBeNull]
+    public static EffectStackManager Get(ReferenceHub hub) => Get(Player.Get(hub));
 }

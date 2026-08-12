@@ -247,6 +247,20 @@ namespace XazeAPI.API.Extensions
                 DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(target),DisruptorActionModule.FiringState.FiringSingle), target.PlayerCameraReference.forward, -1f);
                 target.playerStats.KillPlayer(vaporizeHandler);
             }
+            
+            public void AddEffect<T>(byte intensity, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensity, duration);
+
+            public void AddEffect(Type effectType, byte intensity, float duration = 0)
+            {
+                if (!EffectStackManager.TryGet(target, out var manager))
+                    return;
+                
+                manager.AddStack(effectType, new EffectStack
+                {
+                    Intensity = intensity,
+                    Duration = duration
+                });
+            }
         }
 
         /// <param name="target">Target which gets vaporized</param>
