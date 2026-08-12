@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using System.Text.RegularExpressions;
 using CustomPlayerEffects;
 using Footprinting;
 using Interactables.Interobjects.DoorUtils;
@@ -2084,6 +2085,14 @@ namespace XazeAPI.API.Helpers
         {
             var unitCircle = Random.insideUnitCircle * range;
             return new Vector3(unitCircle.x, z, unitCircle.y);
+        }
+        
+        public static string RemoveRichTags(this string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return text;
+        
+            return Regex.Replace(text, "<.*?>", string.Empty);
         }
     }
 }

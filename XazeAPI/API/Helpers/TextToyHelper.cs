@@ -16,53 +16,56 @@ namespace XazeAPI.API.Helpers
     {
         public static IEnumerator<float> FadeOutText(TextToy text, float speed = 5f)
         {
+            if (text == null || text.Base == null) yield break;
             var textMesh = text.Base._textMesh;
-            while (textMesh.alpha > 0.0)
-            {
-                textMesh.alpha -= Time.deltaTime * speed;
-                textMesh.alpha = Mathf.Clamp(textMesh.alpha, 0, 1);
 
+            while (textMesh is { alpha: > 0f })
+            {
+                textMesh.alpha = Mathf.Max(0f, textMesh.alpha - Time.deltaTime * speed);
                 yield return Timing.WaitForOneFrame;
             }
         }
 
-        public static IEnumerator<float> FadeIntText(TextToy text, float speed = 5f)
+        public static IEnumerator<float> FadeInText(TextToy text, float speed = 5f)
         {
+            if (text == null || text.Base == null) yield break;
             var textMesh = text.Base._textMesh;
-            while (textMesh.alpha < 1.0)
-            {
-                textMesh.alpha += Time.deltaTime * speed;
-                textMesh.alpha = Mathf.Clamp(textMesh.alpha, 0, 1);
 
+            while (textMesh is { alpha: < 1f })
+            {
+                textMesh.alpha = Mathf.Min(1f, textMesh.alpha + Time.deltaTime * speed);
                 yield return Timing.WaitForOneFrame;
             }
         }
 
         public static IEnumerator<float> MoveTextUp(TextToy text, int steps = 10)
         {
-            for(int i=0; i < steps; i++)
+            for (int i = 0; i < steps; i++)
             {
-                text.Position += Vector3.one * 0.1f;
+                if (text == null) yield break;
+                text.Position += Vector3.up * 0.1f;
+                yield return Timing.WaitForSeconds(0.05f);
             }
-            yield return Timing.WaitForSeconds(0.05f);
         }
 
         public static IEnumerator<float> FadeAnimation(TextToy text, float wait = 4f, bool move = true)
         {
-            yield return Timing.WaitUntilDone(FadeIntText(text, 2));
+            yield return Timing.WaitUntilDone(FadeInText(text, 2f));
             yield return Timing.WaitForSeconds(wait);
+        
             if (move)
             {
-                Timing.RunCoroutine(MoveTextUp(text));
+                yield return Timing.WaitUntilDone(MoveTextUp(text));
             }
-            yield return Timing.WaitUntilDone(FadeOutText(text, 2));
-            text.Destroy();
+
+            yield return Timing.WaitUntilDone(FadeOutText(text, 2f));
+            text?.Destroy();
         }
 
-        public static IEnumerator<float> MoveAnimation(TextToy text)
+        public static IEnumerator<float> MoveAnimation(TextToy text, int steps = 10)
         {
-            yield return Timing.WaitUntilDone(MoveTextUp(text));
-            text.Destroy();
+            yield return Timing.WaitUntilDone(MoveTextUp(text, steps));
+            text?.Destroy();
         }
     }
 }

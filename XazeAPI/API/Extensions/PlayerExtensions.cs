@@ -6,6 +6,8 @@
 // I <3 🦈s :3c
 
 using EclipsePlugin.API.CustomModules;
+using ProjectMER.Commands.Modifying.Scale.SubCommands;
+using XazeAPI.API.EffectStacks;
 using XazeAPI.API.Events;
 using XazeAPI.API.Events.Handler;
 using XazeAPI.API.Helpers;
@@ -151,7 +153,6 @@ namespace XazeAPI.API.Extensions
         }
 
         /// <param name="attacker">Target which gets vaporized</param>
-        /// <param name="attacker">Attacker which vaporizes the Target</param>
         extension(Player attacker)
         {
             public CoroutineHandle createAura(float damageMultiplier, float damagePerMultiplier, DeathTranslation deathTranslation, Action customFunction = null)
@@ -266,7 +267,37 @@ namespace XazeAPI.API.Extensions
             /// <param name="attacker">Attacker which vaporizes the Target</param>
             public void VaporizePlayer(Player attacker = null)
             {
-                target.ReferenceHub.VaporizePlayer(attacker.ReferenceHub);
+                target.ReferenceHub.VaporizePlayer(attacker?.ReferenceHub);
+            }
+            
+            public void AddEffect<T>(byte intensity, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensity, duration);
+
+            public void AddEffect(Type effectType, byte intensity, float duration = 0)
+            {
+                if (!EffectStackManager.TryGet(target, out var manager))
+                    return;
+                
+                manager.AddStack(effectType, new EffectStack
+                {
+                    Intensity = intensity,
+                    Duration = duration
+                });
+            }
+
+            internal void EnableEffect(Type effectType, byte intensity, float duration = 0, bool addDuration = false)
+            {
+                target.ReferenceHub.playerEffectsController.GetEffect(effectType)?.ServerSetState(intensity, duration, addDuration);
+            }
+
+            internal void DisableEffect(Type effectType)
+            {
+                target.ReferenceHub.playerEffectsController.GetEffect(effectType)?.ServerDisable();
+            }
+            
+            internal bool TryGetEffect(Type effectType, out StatusEffectBase effect)
+            {
+                effect = target.ReferenceHub.playerEffectsController.GetEffect(effectType);
+                return effect != null;
             }
         }
 
@@ -490,7 +521,7 @@ namespace XazeAPI.API.Extensions
 
         public static void GiveLoadout(this ReferenceHub hub, RoleTypeId role, bool resetInventory = false)
         {
-            if (!PlayerRoleLoader.TryGetRoleTemplate<PlayerRoleBase>(role, out var prb))
+            if (!role.TryGetRoleTemplate<PlayerRoleBase>(out var prb))
             {
                 return;
             }
