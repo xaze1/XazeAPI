@@ -86,10 +86,10 @@ public class EffectStackManager : MonoBehaviour
             return;
 
         byte intensity = 0;
-        foreach (var stack in stacks)
+        foreach (var stack in stacks.OrderBy(s => s.MaxIntensity))
         {
             if (stack.IsActive)
-                intensity = (byte)Mathf.Clamp(intensity + stack.Intensity, 0, 255);
+                intensity = (byte)Mathf.Clamp(intensity + stack.Intensity, 0, stack.MaxIntensity);
         }
 
         if (!_owner.TryGetEffect(effectType, out var effect) || effect.Intensity == intensity)

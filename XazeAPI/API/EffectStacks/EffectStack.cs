@@ -16,17 +16,19 @@ public class EffectStack()
 {
     public bool IsActive => Duration != 0f && TimeLeft > 0f || Intensity > 0;
 
+    public byte MaxIntensity { get; set; } = byte.MaxValue;
+
     public byte Intensity
     {
         get
         {
             if (_intensityCalc == null)
                 return field;
-            
+
             return _intensityCalc.InvokeSafely();
         }
         set;
-    }
+    } = 1;
 
     public float Duration
     {
@@ -36,13 +38,13 @@ public class EffectStack()
             field = value;
             TimeLeft = value;
         }
-    }
+    } = 0;
 
     public float TimeLeft
     {
         get;
         set => field = Mathf.Max(0f, value);
-    }
+    } = 0;
 
     [CanBeNull] private readonly Func<byte> _intensityCalc;
 
