@@ -5,6 +5,8 @@
 // 
 // I <3 🦈s :3c
 
+using HarmonyLib;
+using Mirror;
 using PlayerRoles.FirstPersonControl;
 using XazeAPI.API.Helpers;
 using XazeAPI.API.Interfaces;
@@ -114,17 +116,17 @@ namespace XazeAPI.API
                 return;
             }
 
-            Lights.RemoveWhere(x => x.TargetHub != null && x.TargetHub.gameObject == null);
+            Lights.ToList().DoIf(x => x.TargetHub != null && x.TargetHub.gameObject == null, l => l.Destroy());
         }
 
         public static void AddLight(Transform origin, float intensity = 5, float range = 10)
         {
-            new LightConfig(origin, intensity, range);
+            _ = new LightConfig(origin, intensity, range);
         }
 
         public static void AddLight(ReferenceHub Target, Color color, float intensity = 5, float range = 10, LightConfig.LightState state = LightConfig.LightState.SolidColor)
         {
-            new LightConfig(Target, color, intensity, range, state);
+            _ = new LightConfig(Target, color, intensity, range, state);
         }
 
         public static void AddLight(Player Target, Color color, float intensity = 5, float range = 10, LightConfig.LightState state = LightConfig.LightState.SolidColor) =>
@@ -212,6 +214,12 @@ namespace XazeAPI.API
 
                     LightToy.Color = value;
                 }
+            }
+
+            public void Destroy()
+            {
+                Lights.Remove(this);
+                NetworkServer.Destroy(_light.GameObject);
             }
 
             public LightConfig(Transform origin, Color color, float intensity = 5, float range = 10, LightState state = LightState.SolidColor)
