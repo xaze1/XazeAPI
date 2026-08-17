@@ -18,6 +18,7 @@ namespace XazeAPI.Patches;
 
 public static class RAEffectPatches
 {
+    [HarmonyPatchCategory(APILoader.PatchGroup)]
     [HarmonyPatch(typeof(EffectCommand), nameof(EffectCommand.Execute))]
     public static class EffectCmdPatch
     {
@@ -79,6 +80,7 @@ public static class RAEffectPatches
         }
     }
 
+    [HarmonyPatchCategory(APILoader.PatchGroup)]
     [HarmonyPatch(typeof(ClearEffectsCommand), nameof(ClearEffectsCommand.Execute))]
     public static class ClearEffectsCmdPatch
     {

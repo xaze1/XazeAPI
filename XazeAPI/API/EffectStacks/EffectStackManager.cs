@@ -93,17 +93,17 @@ public class EffectStackManager : MonoBehaviour
 
     private void UpdateIntensity(Type effectType, List<EffectStack> stacks)
     {
-        if (_owner == null)
+        if (_owner == null || !_owner.TryGetEffect(effectType, out var effect))
             return;
 
         byte intensity = 0;
         foreach (var stack in stacks.OrderBy(s => s.MaxIntensity))
         {
             if (stack.IsActive)
-                intensity = (byte)Mathf.Clamp(intensity + stack.Intensity, 0, stack.MaxIntensity);
+                intensity = (byte)Mathf.Clamp(intensity + stack.Intensity, 0, Mathf.Min(stack.MaxIntensity, effect.MaxIntensity));
         }
 
-        if (!_owner.TryGetEffect(effectType, out var effect) || effect.Intensity == intensity)
+        if (effect.Intensity == intensity)
             return;
         
         if (intensity == 0)
@@ -160,7 +160,7 @@ public class EffectStackManager : MonoBehaviour
     
     public bool RemoveStack(Type effectType, EffectStack stack)
     {
-        if (_owner == null)
+        if (_owner == null || !stack.CanBeRemoved)
             return false;
         
         if (!Stacks.TryGetValue(effectType, out var stacks))
@@ -183,6 +183,19 @@ public class EffectStackManager : MonoBehaviour
     {
         if (_owner == null)
             return false;
+        
+        if (Stacks.TryGetValue(effectType, out var stacks) && stacks.Any(s => !s.CanBeRemoved))
+        {
+            for (int i = stacks.Count - 1; i >= 0; i--)
+            {
+                var stack = stacks[i];
+                if (!stack.CanBeRemoved)
+                    continue;
+                stacks.RemoveAt(i);
+            }
+
+            return false;
+        }
         
         var removedStacks = Stacks.Remove(effectType);
         if (!_owner.TryGetEffect(effectType, out var effect) || !effect.IsEnabled) 
