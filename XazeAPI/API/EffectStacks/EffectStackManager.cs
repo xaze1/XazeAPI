@@ -204,6 +204,37 @@ public class EffectStackManager : MonoBehaviour
         effect.ServerDisable();
         return true;
     }
+    
+    public void RemoveStacks()
+    {
+        if (_owner == null)
+            return;
+
+        foreach (var kv in Stacks.ToList())
+        {
+            var effectType = kv.Key;
+            var stacks = kv.Value;
+            
+            if (stacks.Any(s => !s.CanBeRemoved))
+            {
+                for (int i = stacks.Count - 1; i >= 0; i--)
+                {
+                    var stack = stacks[i];
+                    if (!stack.CanBeRemoved)
+                        continue;
+                    stacks.RemoveAt(i);
+                }
+                
+                continue;
+            }
+            
+            Stacks.Remove(effectType);
+            if (!_owner.TryGetEffect(effectType, out var effect) || !effect.IsEnabled) 
+                continue;
+        
+            effect.ServerDisable();
+        }
+    }
 
     public static bool TryGet([CanBeNull] Player plr, out EffectStackManager manager)
     {

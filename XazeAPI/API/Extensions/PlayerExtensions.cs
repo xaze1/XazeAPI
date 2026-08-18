@@ -279,6 +279,14 @@ namespace XazeAPI.API.Extensions
                 
                 return manager.RemoveStacks(effectType);
             }
+            
+            public void RemoveEffects()
+            {
+                if (!EffectStackManager.TryGet(target, out var manager))
+                    return;
+                
+                manager.RemoveStacks();
+            }
         }
 
         /// <param name="target">Target which gets vaporized</param>
@@ -345,6 +353,14 @@ namespace XazeAPI.API.Extensions
                     return false;
                 
                 return manager.RemoveStacks(effectType);
+            }
+            
+            public void RemoveEffects()
+            {
+                if (!EffectStackManager.TryGet(target, out var manager))
+                    return;
+                
+                manager.RemoveStacks();
             }
 
             internal void EnableEffect(Type effectType, byte intensity, float duration = 0, bool addDuration = false)
