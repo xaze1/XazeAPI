@@ -37,10 +37,13 @@ public static class EffectPatches
         [HarmonyPatch(nameof(StatusEffectBase.ForceIntensity))]
         public static bool Prefix(StatusEffectBase __instance, byte value)
         {
-            if (EffectStackManager.IsInternalCall || !EffectStackManager.TryGet(__instance.Hub, out var manager) || __instance == null || __instance is Scp1853)
+            if (EffectStackManager.IsInternalCall || !EffectStackManager.TryGet(__instance.Hub, out var manager) || __instance == null)
                 return true;
 
             var effectType = __instance.GetType();
+            if (EffectStackManager.BlacklistedEffects.Contains(effectType))
+                return true;
+            
             if (value == 0)
             {
                 manager.RemoveStacks(effectType);

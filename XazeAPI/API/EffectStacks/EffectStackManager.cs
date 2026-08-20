@@ -23,6 +23,11 @@ using Extensions;
 
 public class EffectStackManager : MonoBehaviour
 {
+    public static readonly List<Type> BlacklistedEffects = [
+        typeof(Scp1853),
+        typeof(Scp1576),
+    ];
+    
     [ThreadStatic]
     public static bool IsInternalCall;
     
@@ -145,7 +150,7 @@ public class EffectStackManager : MonoBehaviour
 
     public void AddStack(Type effectType, EffectStack stack)
     {
-        if (_owner == null)
+        if (_owner == null || BlacklistedEffects.Contains(effectType))
             return;
 
         if (typeof(CokeBase).IsAssignableFrom(effectType))

@@ -11,6 +11,7 @@ using CommandSystem.Commands.RemoteAdmin;
 using CustomPlayerEffects;
 using HarmonyLib;
 using Utils;
+using XazeAPI.API.EffectStacks;
 using XazeAPI.API.Extensions;
 
 namespace XazeAPI.Patches;
@@ -63,7 +64,7 @@ public static class RAEffectPatches
                     continue;
 
                 var effectType = effect.GetType();
-                if (effect is Scp1853)
+                if (EffectStackManager.BlacklistedEffects.Contains(effectType))
                     effect.ServerSetState(intensity, duration);
                 else if (intensity > 0)
                     hub.AddEffect(effectType, intensity, duration);
