@@ -23,6 +23,9 @@ using Extensions;
 
 public class EffectStackManager : MonoBehaviour
 {
+    [ThreadStatic] 
+    public static bool IsInternalCall;
+    
     public static Dictionary<Player, EffectStackManager> List { get; } = new();
     
     private Player _owner;
@@ -71,12 +74,14 @@ public class EffectStackManager : MonoBehaviour
                 continue;
             empty.Add(pair.Key);
         }
-        
-        if (empty.Count <= 0)
-            return;
-        
+
         // Remove empty Keys
-        empty.Do(e => Stacks.Remove(e));
+        if (empty.Count > 0)
+        {
+            empty.Do(e => Stacks.Remove(e));
+        }
+        
+        ListPool<Type>.Shared.Return(empty);
     }
 
     private void OnRoleChanged(PlayerChangedRoleEventArgs args)
@@ -97,7 +102,8 @@ public class EffectStackManager : MonoBehaviour
             return;
 
         byte intensity = 0;
-        foreach (var stack in stacks.OrderBy(s => s.MaxIntensity))
+        stacks.Sort((a, b) => a.MaxIntensity.CompareTo(b.MaxIntensity));
+        foreach (var stack in stacks)
         {
             if (stack.IsActive)
                 intensity = (byte)Mathf.Clamp(intensity + stack.Intensity, 0, Mathf.Min(stack.MaxIntensity, effect.MaxIntensity));
@@ -105,14 +111,16 @@ public class EffectStackManager : MonoBehaviour
 
         if (effect.Intensity == intensity)
             return;
-        
-        if (intensity == 0)
+
+        try
         {
-            effect.ServerDisable();
-            return;
+            IsInternalCall = true;
+            effect.ServerSetState(intensity);
         }
-        
-        effect.ServerSetState(intensity);
+        finally
+        {
+            IsInternalCall = false;
+        }
     }
 
     public void AddStack<T>(byte intensity, float duration) where T : StatusEffectBase
@@ -167,7 +175,8 @@ public class EffectStackManager : MonoBehaviour
             return false;
         
         var outcome = stacks.Remove(stack);
-        UpdateIntensity(effectType, stacks);
+        if (outcome)
+            UpdateIntensity(effectType, stacks);
         return outcome;
     }
     
@@ -183,25 +192,38 @@ public class EffectStackManager : MonoBehaviour
     {
         if (_owner == null)
             return false;
-        
-        if (Stacks.TryGetValue(effectType, out var stacks) && stacks.Any(s => !s.CanBeRemoved))
+
+        if (Stacks.TryGetValue(effectType, out var stacks))
         {
+            var hasLockedStacks = false;
             for (int i = stacks.Count - 1; i >= 0; i--)
             {
-                var stack = stacks[i];
-                if (!stack.CanBeRemoved)
-                    continue;
-                stacks.RemoveAt(i);
+                if (stacks[i].CanBeRemoved)
+                    stacks.RemoveAt(i);
+                else
+                    hasLockedStacks = true;
             }
 
-            return false;
+            if (hasLockedStacks)
+            {
+                UpdateIntensity(effectType, stacks);
+                return false;
+            }
         }
         
         var removedStacks = Stacks.Remove(effectType);
         if (!_owner.TryGetEffect(effectType, out var effect) || !effect.IsEnabled) 
             return removedStacks;
         
-        effect.ServerDisable();
+        try
+        {
+            IsInternalCall = true;
+            effect.ServerDisable();
+        }
+        finally
+        {
+            IsInternalCall = false;
+        }
         return true;
     }
     
@@ -210,29 +232,15 @@ public class EffectStackManager : MonoBehaviour
         if (_owner == null)
             return;
 
-        foreach (var kv in Stacks.ToList())
+        var keys = ListPool<Type>.Shared.Rent(Stacks.Keys);
+        try
         {
-            var effectType = kv.Key;
-            var stacks = kv.Value;
-            
-            if (stacks.Any(s => !s.CanBeRemoved))
-            {
-                for (int i = stacks.Count - 1; i >= 0; i--)
-                {
-                    var stack = stacks[i];
-                    if (!stack.CanBeRemoved)
-                        continue;
-                    stacks.RemoveAt(i);
-                }
-                
-                continue;
-            }
-            
-            Stacks.Remove(effectType);
-            if (!_owner.TryGetEffect(effectType, out var effect) || !effect.IsEnabled) 
-                continue;
-        
-            effect.ServerDisable();
+            foreach (var key in keys)
+                RemoveStacks(key);
+        }
+        finally
+        {
+            ListPool<Type>.Shared.Return(keys);
         }
     }
 
@@ -259,4 +267,33 @@ public class EffectStackManager : MonoBehaviour
 
     [CanBeNull]
     public static EffectStackManager Get(ReferenceHub hub) => Get(Player.Get(hub));
+
+    [RuntimeInitializeOnLoadMethod]
+    private static void Init()
+    {
+        PlayerEvents.UpdatingEffect += OnEffectUpdate;
+    }
+
+    private static void OnEffectUpdate(PlayerEffectUpdatingEventArgs args)
+    {
+        var effect = args.Effect;
+        if (IsInternalCall || !TryGet(args.Player, out var manager) || effect == null || effect is Scp1853)
+            return;
+        
+        args.IsAllowed = false;
+
+        var effectType = effect.GetType();
+        if (args.Intensity == 0)
+        {
+            manager.RemoveStacks(effectType);
+            return;
+        }
+        
+        manager.AddStack(effectType, new EffectStack
+        {
+            Intensity = args.Intensity,
+            Duration = args.Duration,
+            MaxIntensity = effect is CokeBase<ICokeStack> cokeBase? (byte)cokeBase.StackMultipliers.Length : effect.MaxIntensity,
+        });
+    }
 }
