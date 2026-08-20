@@ -7,7 +7,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using CustomPlayerEffects;
 using JetBrains.Annotations;
 using LabApi.Events.Arguments.PlayerEvents;
@@ -23,7 +22,7 @@ using Extensions;
 
 public class EffectStackManager : MonoBehaviour
 {
-    [ThreadStatic] 
+    [ThreadStatic]
     public static bool IsInternalCall;
     
     public static Dictionary<Player, EffectStackManager> List { get; } = new();
@@ -287,7 +286,8 @@ public class EffectStackManager : MonoBehaviour
             manager.RemoveStacks(effectType);
             return;
         }
-        
+
+        effect.Duration = 0;
         manager.AddStack(effectType, new EffectStack
         {
             Intensity = args.Intensity,
