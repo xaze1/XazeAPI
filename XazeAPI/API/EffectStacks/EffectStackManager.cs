@@ -268,8 +268,7 @@ public class EffectStackManager : MonoBehaviour
     [CanBeNull]
     public static EffectStackManager Get(ReferenceHub hub) => Get(Player.Get(hub));
 
-    [RuntimeInitializeOnLoadMethod]
-    private static void Init()
+    internal static void Init()
     {
         PlayerEvents.UpdatingEffect += OnEffectUpdate;
     }
