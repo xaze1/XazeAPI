@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CustomPlayerEffects;
 using JetBrains.Annotations;
 using LabApi.Events.Arguments.PlayerEvents;
@@ -147,6 +148,23 @@ public class EffectStackManager : MonoBehaviour
         if (_owner == null)
             return;
 
+        if (typeof(CokeBase).IsAssignableFrom(effectType))
+        {
+            if (Stacks.Keys.Any(t => t != effectType && typeof(CokeBase).IsAssignableFrom(t)))
+            {
+                try
+                {
+                    IsInternalCall = true;
+                    _owner.EnableEffect(effectType, stack.Intensity, stack.Duration);
+                }
+                finally
+                {
+                    IsInternalCall = false;
+                }
+                return;
+            }
+        }
+
         if (!Stacks.TryGetValue(effectType, out var stacks))
         {
             stacks = new();
@@ -266,33 +284,4 @@ public class EffectStackManager : MonoBehaviour
 
     [CanBeNull]
     public static EffectStackManager Get(ReferenceHub hub) => Get(Player.Get(hub));
-
-    internal static void Init()
-    {
-        PlayerEvents.UpdatingEffect += OnEffectUpdate;
-    }
-
-    private static void OnEffectUpdate(PlayerEffectUpdatingEventArgs args)
-    {
-        var effect = args.Effect;
-        if (IsInternalCall || !TryGet(args.Player, out var manager) || effect == null || effect is Scp1853)
-            return;
-        
-        args.IsAllowed = false;
-
-        var effectType = effect.GetType();
-        if (args.Intensity == 0)
-        {
-            manager.RemoveStacks(effectType);
-            return;
-        }
-
-        effect.Duration = 0;
-        manager.AddStack(effectType, new EffectStack
-        {
-            Intensity = args.Intensity,
-            Duration = args.Duration,
-            MaxIntensity = effect is CokeBase<ICokeStack> cokeBase? (byte)cokeBase.StackMultipliers.Length : effect.MaxIntensity,
-        });
-    }
 }

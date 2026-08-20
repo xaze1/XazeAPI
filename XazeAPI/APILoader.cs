@@ -51,7 +51,6 @@ public class APILoader : Plugin
         Logging.ServerLog(ConsoleColor.Magenta, "Thank you for using XazeAPI! Version", Version);
         CustomSSSSync.Init();
         XazeHandlerManager.InitializeEvents();
-        EffectStackManager.Init();
         
         Patches.PatchCategory(PatchGroup);
 

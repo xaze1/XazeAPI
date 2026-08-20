@@ -7,17 +7,21 @@
 
 using CustomPlayerEffects;
 using HarmonyLib;
+using InventorySystem.Items.Usables.Scp244.Hypothermia;
 using Mirror;
 using UnityEngine;
+using XazeAPI.API;
+using XazeAPI.API.EffectStacks;
 
 namespace XazeAPI.Patches;
 
 public static class EffectPatches
 {
     [HarmonyPatchCategory(APILoader.PatchGroup)]
-    [HarmonyPatch(typeof(StatusEffectBase), nameof(StatusEffectBase.ServerSetState))]
-    public static class ServerSetStatePatch
+    [HarmonyPatch(typeof(StatusEffectBase))]
+    public static class StatusEffectBasePatch
     {
+        [HarmonyPatch(nameof(StatusEffectBase.ServerSetState))]
         public static bool Prefix(StatusEffectBase __instance, byte intensity, float duration, bool addDuration)
         {
             if (!NetworkServer.active)
@@ -27,6 +31,29 @@ public static class EffectPatches
             
             __instance.ServerChangeDuration(duration, addDuration);
             __instance.Intensity = intensity;
+            return false;
+        }
+
+        [HarmonyPatch(nameof(StatusEffectBase.ForceIntensity))]
+        public static bool Prefix(StatusEffectBase __instance, byte value)
+        {
+            if (EffectStackManager.IsInternalCall || !EffectStackManager.TryGet(__instance.Hub, out var manager) || __instance == null || __instance is Scp1853)
+                return true;
+
+            var effectType = __instance.GetType();
+            if (value == 0)
+            {
+                manager.RemoveStacks(effectType);
+                return false;
+            }
+
+            manager.AddStack(effectType, new EffectStack
+            {
+                Intensity = value,
+                Duration = __instance.Duration,
+                MaxIntensity = __instance is CokeBase<ICokeStack> cokeBase? (byte)cokeBase.StackMultipliers.Length : __instance.MaxIntensity,
+            });
+            __instance.Duration = 0;
             return false;
         }
     }

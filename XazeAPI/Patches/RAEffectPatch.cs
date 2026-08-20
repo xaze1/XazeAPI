@@ -8,6 +8,7 @@
 using System;
 using CommandSystem;
 using CommandSystem.Commands.RemoteAdmin;
+using CustomPlayerEffects;
 using HarmonyLib;
 using Utils;
 using XazeAPI.API.Extensions;
@@ -62,7 +63,9 @@ public static class RAEffectPatches
                     continue;
 
                 var effectType = effect.GetType();
-                if (intensity > 0)
+                if (effect is Scp1853)
+                    effect.ServerSetState(intensity, duration);
+                else if (intensity > 0)
                     hub.AddEffect(effectType, intensity, duration);
                 else
                     hub.RemoveEffect(effectType);
