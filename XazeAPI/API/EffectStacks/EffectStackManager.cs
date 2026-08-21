@@ -26,6 +26,10 @@ public class EffectStackManager : MonoBehaviour
     public static readonly List<Type> BlacklistedEffects = [
         typeof(Scp1853),
         typeof(Scp1576),
+        typeof(Scp1344),
+        typeof(SeveredEyes),
+        typeof(SeveredHands),
+        typeof(Blindness),
     ];
     
     [ThreadStatic]
@@ -150,8 +154,22 @@ public class EffectStackManager : MonoBehaviour
 
     public void AddStack(Type effectType, EffectStack stack)
     {
-        if (_owner == null || BlacklistedEffects.Contains(effectType))
+        if (_owner == null)
             return;
+
+        if (BlacklistedEffects.Contains(effectType))
+        {
+            try
+            {
+                IsInternalCall = true;
+                _owner.EnableEffect(effectType, stack.Intensity, stack.Duration);
+            }
+            finally
+            {
+                IsInternalCall = false;
+            }
+            return;
+        }
 
         if (typeof(CokeBase).IsAssignableFrom(effectType))
         {

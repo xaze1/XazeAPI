@@ -46,8 +46,19 @@ public class EffectStack()
         set => field = Mathf.Max(0f, value);
     } = 0;
 
-    public bool CanBeRemoved { get; set; } = true;
+    public bool CanBeRemoved
+    {
+        get
+        {
+            if (_canBeRemovedCalc == null)
+                return field;
+
+            return _canBeRemovedCalc.InvokeSafely();
+        }
+        set;
+    } = true;
     [CanBeNull] private readonly Func<byte> _intensityCalc;
+    [CanBeNull] private readonly Func<bool> _canBeRemovedCalc;
 
     public void RefreshTime(float deltaTime)
     {
@@ -57,8 +68,14 @@ public class EffectStack()
         TimeLeft -= deltaTime;
     }
 
-    public EffectStack(Func<byte> intensityCalc) : this()
+    public EffectStack([CanBeNull] Func<bool> canBeRemovedCalc = null) : this()
+    {
+        _canBeRemovedCalc = canBeRemovedCalc;
+    }
+
+    public EffectStack(Func<byte> intensityCalc, [CanBeNull] Func<bool> canBeRemovedCalc = null) : this()
     {
         _intensityCalc = intensityCalc;
+        _canBeRemovedCalc = canBeRemovedCalc;
     }
 }

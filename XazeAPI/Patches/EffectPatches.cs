@@ -7,10 +7,8 @@
 
 using CustomPlayerEffects;
 using HarmonyLib;
-using InventorySystem.Items.Usables.Scp244.Hypothermia;
 using Mirror;
 using UnityEngine;
-using XazeAPI.API;
 using XazeAPI.API.EffectStacks;
 
 namespace XazeAPI.Patches;
