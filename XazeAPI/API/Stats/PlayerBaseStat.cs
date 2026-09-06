@@ -6,6 +6,7 @@
 // I <3 🦈s :3c
 
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using LabApi.Features.Wrappers;
 using XazeAPI.API.Extensions;
@@ -14,6 +15,7 @@ namespace XazeAPI.API.Stats
 {
     public abstract class PlayerBaseStat
     {
+        internal static readonly List<PlayerBaseStat> List = new();
         public static event Action<PlayerBaseStat> OnValueChanged; 
         [CanBeNull] public Player Owner { get; private set; }
 
@@ -33,6 +35,17 @@ namespace XazeAPI.API.Stats
         {
             Owner = owner;
             IsSet = true;
+            List.Add(this);
+        }
+
+        internal void Reset()
+        {
+            Value = 0;
+        }
+
+        public static void Clear()
+        {
+            List.Do(s => s.Reset());
         }
     }
 }

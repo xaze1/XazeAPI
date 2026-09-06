@@ -7,9 +7,8 @@
 
 using System;
 using System.Collections.Generic;
-using XazeAPI.API.DiscordWebhook.Data.Components;
 
-namespace XazeAPI.API.DiscordWebhook.Data;
+namespace XazeAPI.API.DiscordWebhook.Data.Builders;
 
 public class ActionRowBuilder
 {

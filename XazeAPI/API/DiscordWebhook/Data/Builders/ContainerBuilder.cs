@@ -7,9 +7,11 @@
 
 using System;
 using System.Collections.Generic;
-using XazeAPI.API.DiscordWebhook.Data.Components;
+using System.Text;
+using NorthwoodLib.Pools;
+using XazeAPI.API.Extensions;
 
-namespace XazeAPI.API.DiscordWebhook.Data;
+namespace XazeAPI.API.DiscordWebhook.Data.Builders;
 
 public class ContainerBuilder
 {
@@ -21,10 +23,31 @@ public class ContainerBuilder
         _accentColor = color;
         return this;
     }
+    
+    public ContainerBuilder WithAccentColor(System.Drawing.Color color)
+    {
+        _accentColor = color.ToArgb() & 0xFFFFFF;
+        return this;
+    }
 
     public ContainerBuilder WithTextDisplay(string content)
     {
         _components.Add(new TextDisplay(content));
+        return this;
+    }
+
+    public ContainerBuilder WithTextDisplay(Action<StringBuilder> contentAction)
+    {
+        var sb = StringBuilderPool.Shared.Rent();
+        contentAction.InvokeSafely(sb, (ex) =>
+        {
+            sb.Clear()
+                .AppendLine(" ⚠️ | **Text Generation Exception** | ⚠️")
+                .AppendLine(ex.Message)
+                .AppendLine("**Stack Trace**:")
+                .AppendLine(ex.StackTrace);
+        });
+        _components.Add(new TextDisplay(StringBuilderPool.Shared.ToStringReturn(sb)));
         return this;
     }
 

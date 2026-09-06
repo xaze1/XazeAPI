@@ -7,10 +7,10 @@
 
 using Newtonsoft.Json;
 
-namespace XazeAPI.API.DiscordWebhook.Data.Components;
+namespace XazeAPI.API.DiscordWebhook.Data;
 
 public abstract class ComponentV2
 {
-    [JsonProperty]
+    [JsonProperty("type")]
     public abstract int Type { get; }
 }

@@ -8,6 +8,7 @@
 using System;
 using System.Reflection;
 using HarmonyLib;
+using LabApi.Events.CustomHandlers;
 using LabApi.Events.Handlers;
 using LabApi.Features;
 using LabApi.Loader.Features.Plugins;
@@ -22,6 +23,7 @@ using XazeAPI.API.EffectStacks;
 using XazeAPI.API.Events.Handler;
 using XazeAPI.API.Helpers;
 using XazeAPI.API.Stats;
+using EventHandler = XazeAPI.API.EventHandler;
 
 namespace XazeAPI;
 
@@ -31,7 +33,7 @@ public class APILoader : Plugin
     public override string Name => "XazeAPI";
     public override string Description => "API Library by xaze_";
     public override string Author => "xaze_";
-    public override Version Version => new(1, 2, 5);
+    public override Version Version => new(1, 2, 5, 1);
     public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
     public override LoadPriority Priority =>  LoadPriority.Highest;
 
@@ -48,9 +50,10 @@ public class APILoader : Plugin
         }
         
         Singleton = this;
-        Logging.ServerLog(ConsoleColor.Magenta, "Thank you for using XazeAPI! Version", Version);
+        Logging.ServerLog(ConsoleColor.DarkMagenta, "Thank you for using XazeAPI! Version", Version);
         CustomSSSSync.Init();
         XazeHandlerManager.InitializeEvents();
+        CustomHandlersManager.RegisterEventsHandler(new EventHandler());
         
         Patches.PatchCategory(PatchGroup);
 

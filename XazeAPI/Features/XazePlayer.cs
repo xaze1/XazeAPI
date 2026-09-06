@@ -7,13 +7,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using CommandSystem;
+using CustomPlayerEffects;
 using JetBrains.Annotations;
 using LabApi.Features.Wrappers;
 using PlayerRoles;
 using PlayerRoles.RoleAssign;
 using UnityEngine;
+using XazeAPI.API.EffectStacks;
 using XazeAPI.API.Extensions;
 using XazeAPI.API.Helpers;
 using XazeAPI.API.Stats;
@@ -27,9 +28,10 @@ public class XazePlayer
     public static Dictionary<string, XazePlayer> Dictionary { get; } = new();
     public static List<XazePlayer> List { get; } = new();
 
-    public Player Player { get; private set; }
+    public Player Player { get; private init; }
     [CanBeNull] public ReferenceHub ReferenceHub => Player.ReferenceHub;
     [CanBeNull] public GameObject GameObject => Player.GameObject;
+    public EffectStackManager EffectStacks => EffectStackManager.TryGet(Player, out var manager) ? manager : GameObject?.AddComponent<EffectStackManager>();
 
     public string Username
     {
@@ -50,12 +52,26 @@ public class XazePlayer
     public uint Kills
     {
         get => (uint)(GetStat<PlayerKillStat>()?.Value ?? 0);
-        set => GetStat<PlayerKillStat>()?.Value = (int)value;
+        set
+        {
+            var kills = GetStat<PlayerKillStat>();
+            if (kills == null)
+                return;
+            kills.Value = (int)value;
+            kills.LastTeam = Player.Team;
+        }
     }
     public uint Deaths
     {
         get => (uint)(GetStat<PlayerDeathStat>()?.Value ?? 0);
-        set => GetStat<PlayerDeathStat>()?.Value = (int)value;
+        set
+        {
+            var deaths = GetStat<PlayerDeathStat>();
+            if (deaths == null)
+                return;
+            deaths.Value = (int)value;
+            deaths.LastTeam = Player.Team;
+        }
     }
     public RoleTypeId LastRole { get; internal set; } = RoleTypeId.None;
 
@@ -153,6 +169,26 @@ public class XazePlayer
         return (T)data;
     }
 
+    public bool TryGetData<T>(out T data) where T : class
+    {
+        data = null;
+        if (!CustomData.TryGetValue(typeof(T), out var smth))
+            return false;
+        data = (T)smth;
+        return true;
+    }
+
+    public void AddEffect(Type effectType, EffectStack stack) => EffectStacks.AddStack(effectType, stack);
+    public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => EffectStacks.AddStack<T>(stack);
+    public void AddEffect<T>(int intensity, float duration = 0.0f) where T : StatusEffectBase => EffectStacks.AddStack<T>(new EffectStack{ Intensity = intensity, Duration =  duration });
+    public void AddEffect<T>(Func<int> intensityCalc, float duration = 0.0f) where T : StatusEffectBase => EffectStacks.AddStack<T>(new EffectStack(intensityCalc) { Duration =  duration });
+
+    public void RemoveEffect(Type effectType, EffectStack stack) => EffectStacks.RemoveStack(effectType, stack);
+    public void RemoveEffect<T>(EffectStack stack) where T : StatusEffectBase => EffectStacks.RemoveStack<T>(stack);
+    public void RemoveEffect(Type effectType) => EffectStacks.RemoveStacks(effectType);
+    public void RemoveEffect<T>() where T : StatusEffectBase => EffectStacks.RemoveStacks<T>();
+    public void RemoveEffects() => EffectStacks.RemoveStacks();
+
     private static XazePlayer CreateWrapper(Player plr)
     {
         var xPlayer = new XazePlayer
@@ -170,11 +206,12 @@ public class XazePlayer
         Dictionary.Add(plr.UserId, xPlayer);
         return xPlayer;
     }
-    
+
+    [CanBeNull] public static XazePlayer Get(ReferenceHub hub) => Get(Player.Get(hub));
     [CanBeNull]
     public static XazePlayer Get(Player plr)
     {
-        if (plr.IsDestroyed || plr.IsHost)
+        if (plr == null || plr.IsDestroyed || plr.IsHost)
             return null;
         
         if (Dictionary.TryGetValue(plr.UserId, out var xPlayer))
@@ -183,6 +220,7 @@ public class XazePlayer
         return CreateWrapper(plr);
     }
 
+    public static bool TryGet(ReferenceHub hub, out XazePlayer xPlayer) => TryGet(Player.Get(hub), out xPlayer);
     public static bool TryGet(Player plr, out XazePlayer xPlayer)
     {
         xPlayer = null;

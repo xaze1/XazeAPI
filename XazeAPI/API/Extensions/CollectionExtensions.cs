@@ -28,9 +28,11 @@ public static class CollectionExtensions
         {
             if (sequence is null) 
                 return;
-            
-            using var enumerator = sequence.GetEnumerator();
-            while (enumerator.MoveNext()) action(enumerator.Current);
+
+            foreach (var value in sequence)
+            {
+                action(value);
+            }
         }
 
         /// <summary>A simple way to execute code for elements in a collection matching a condition</summary>

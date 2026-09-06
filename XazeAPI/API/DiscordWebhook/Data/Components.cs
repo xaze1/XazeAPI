@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using XazeAPI.API.DiscordWebhook.Data.Components;
 
 namespace XazeAPI.API.DiscordWebhook.Data;
 

@@ -5,7 +5,7 @@
 // //
 // // I <3 🦈s :3c
 
-namespace XazeAPI.API.DiscordWebhook.Data.Components;
+namespace XazeAPI.API.DiscordWebhook.Data;
 
 public interface ISectionAccessory
 {

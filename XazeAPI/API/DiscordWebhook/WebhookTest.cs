@@ -12,6 +12,7 @@ using LabApi.Features.Wrappers;
 using PlayerRoles;
 using PlayerStatsSystem;
 using XazeAPI.API.DiscordWebhook.Data;
+using XazeAPI.API.DiscordWebhook.Data.Builders;
 using XazeAPI.API.Helpers;
 using XazeAPI.Features;
 
@@ -63,7 +64,12 @@ namespace XazeAPI.API.DiscordWebhook
             {
                 try
                 {
-                    await Client.PostAsync(uri, content);
+                    var response = await Client.PostAsync(uri, content);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        string errBody = await response.Content.ReadAsStringAsync();
+                        Logging.Error($"Discord Webhook Rejected [{response.StatusCode}]: {errBody}");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -82,13 +88,13 @@ namespace XazeAPI.API.DiscordWebhook
                 .WithAvatarUrl(AvatarUrl)
                 .WithContainer(container => container
                     .WithAccentColor(colorGreen)
-                    .WithTextDisplay($"### 📥 {player.DisplayName} joined the Server")
+                    .WithTextDisplay($"### 📥 {player.DisplayName.RemoveRichTags()} joined the Server")
                     .WithSeparator(true, 1)
                     .WithTextDisplay(
-                        $"**Round In Progress:** `{RoundSummary.RoundInProgress()}`\n" +
-                        $"**Role:** {player.Role}\n" +
-                        $"**Group:** {player.GroupName}\n" +
-                        $"**User ID:** `{player.UserId}`"
+                        $"Round In Progress: `{RoundSummary.RoundInProgress()}`\n" +
+                        $"Role: {player.Role}\n" +
+                        $"Group: {player.GroupName}\n" +
+                        $"User ID: `{player.UserId}`"
                         ));
 
             SendMessage(builder.BuildHttpContent(), webhoolUrl);
@@ -103,13 +109,13 @@ namespace XazeAPI.API.DiscordWebhook
                 .WithAvatarUrl(AvatarUrl)
                 .WithContainer(container => container
                     .WithAccentColor(colorRed)
-                    .WithTextDisplay($"### 📤 {player.DisplayName} left the Server")
+                    .WithTextDisplay($"### 📤 {player.DisplayName.RemoveRichTags()} left the Server")
                     .WithSeparator(divider: true, spacing: 1)
                     .WithTextDisplay(
-                        $"**Round In Progress:** `{RoundSummary.RoundInProgress()}`\n" +
-                        $"**Role:** {player.Role}\n" +
-                        $"**Group:** {player.GroupName}\n" +
-                        $"**User ID:** `{player.UserId}`"
+                        $"Round In Progress: `{RoundSummary.RoundInProgress()}`\n" +
+                        $"Role: {player.Role}\n" +
+                        $"Group: {player.GroupName}\n" +
+                        $"User ID: `{player.UserId}`"
                     ));
 
             SendMessage(builder.BuildHttpContent(), webhookUrl);
@@ -128,8 +134,8 @@ namespace XazeAPI.API.DiscordWebhook
                 container.WithAccentColor(colorRed);
 
                 container.WithTextDisplay(isSuicide
-                    ? $"### 💀 {Target.DisplayName} died"
-                    : $"### ⚔️ {Target.DisplayName} died to {Attacker?.DisplayName ?? "Unknown"}");
+                    ? $"### 💀 {Target.DisplayName.RemoveRichTags()} died"
+                    : $"### ⚔️ {Target.DisplayName.RemoveRichTags()} died to {Attacker?.DisplayName.RemoveRichTags() ?? "Unknown"}");
 
                 container.WithSeparator(divider: true, spacing: 1);
                 container.WithTextDisplay(
@@ -146,9 +152,10 @@ namespace XazeAPI.API.DiscordWebhook
                     hasDisguise = true;
                     disguise = targetPlr.Disguise;
                 }
-
+                
+                container.WithSeparator();
                 string targetInfo =
-                    $"__**Target Info**__\n" +
+                    $"### Target Info\n" +
                     $"**Username:** {Target.Nickname}\n" +
                     $"**User ID:** `{Target.UserId}`\n" +
                     $"**Group:** {Target.GroupName}\n" +
@@ -180,11 +187,12 @@ namespace XazeAPI.API.DiscordWebhook
                     disguise2 = attPlr.Disguise;
                 }
 
+                container.WithSeparator();
                 string attackerInfo =
-                    $"__**Attacker Info**__\n" +
+                    "## Attacker Info\n" +
                     $"**Username:** {Attacker.Nickname}\n" +
                     $"**User ID:** `{Attacker.UserId}`\n" +
-                    $"**Group:** {Attacker.GroupName}\n" +
+                    $"**Group:** `{Attacker.GroupName}`\n" +
                     $"**Role:** {Attacker.Role}\n" +
                     $"**Custom Info:** {Attacker.CustomInfo}" +
                     $"{(hasDisguise2 ? $"\n**Disguise:** {disguise2}" : "")}";

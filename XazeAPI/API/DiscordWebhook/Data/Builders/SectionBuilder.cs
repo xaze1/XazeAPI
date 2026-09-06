@@ -7,9 +7,11 @@
 
 using System;
 using System.Collections.Generic;
-using XazeAPI.API.DiscordWebhook.Data.Components;
+using System.Text;
+using NorthwoodLib.Pools;
+using XazeAPI.API.Extensions;
 
-namespace XazeAPI.API.DiscordWebhook.Data;
+namespace XazeAPI.API.DiscordWebhook.Data.Builders;
 
 public class SectionBuilder
 {
@@ -22,6 +24,24 @@ public class SectionBuilder
             throw new InvalidOperationException("A Section cannot exceed 3 TextDisplay items.");
 
         _textDisplays.Add(new TextDisplay(content));
+        return this;
+    }
+    
+    public SectionBuilder WithText(Action<StringBuilder> contentAction)
+    {
+        if (_textDisplays.Count >= 3)
+            throw new InvalidOperationException("A Section cannot exceed 3 TextDisplay items.");
+
+        var sb = StringBuilderPool.Shared.Rent();
+        contentAction.InvokeSafely(sb, (ex) =>
+        {
+            sb.Clear()
+                .AppendLine(" ⚠️ | **Text Generation Exception** | ⚠️")
+                .AppendLine(ex.Message)
+                .AppendLine("**Stack Trace**:")
+                .AppendLine(ex.StackTrace);
+        });
+        _textDisplays.Add(new TextDisplay(StringBuilderPool.Shared.ToStringReturn(sb)));
         return this;
     }
 

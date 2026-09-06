@@ -10,9 +10,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
-using XazeAPI.API.DiscordWebhook.Data.Components;
 
-namespace XazeAPI.API.DiscordWebhook.Data
+namespace XazeAPI.API.DiscordWebhook.Data.Builders
 {
     public class ComponentBuilderV2
     {
