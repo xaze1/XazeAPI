@@ -6,13 +6,12 @@
 // I <3 🦈s :3c
 
 using CentralAuth;
+using PlayerRoles;
+using PlayerStatsSystem;
+using UnityEngine;
 
-namespace EclipsePlugin.API.CustomModules
+namespace XazeAPI.API.Stats
 {
-    using PlayerRoles;
-    using PlayerStatsSystem;
-    using UnityEngine;
-
     public class CustomHealthStat : HealthStat
     {
         public override float MaxValue

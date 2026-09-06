@@ -198,34 +198,30 @@ namespace XazeAPI.API.Helpers
             }
         };
 
-        public static readonly List<ItemType> AmmoTypes = new()
-        {
+        public static List<ItemType> AmmoTypes { get; } = [
             ItemType.Ammo44cal,
             ItemType.Ammo9x19,
             ItemType.Ammo556x45,
             ItemType.Ammo762x39,
             ItemType.Ammo12gauge,
-        };
+        ];
         
-        public static readonly List<ItemType> ConsumableTypes = new()
-        {
+        public static List<ItemType> ConsumableTypes { get; } = [
             ItemType.Medkit,
             ItemType.Painkillers,
             ItemType.Adrenaline,
             ItemType.SCP500,
             ItemType.SCP207,
             ItemType.AntiSCP207,
-        };
+        ];
         
-        public static readonly List<ItemType> HealItemTypes = new()
-        {
+        public static List<ItemType> HealItemTypes { get; } = [
             ItemType.Medkit,
             ItemType.Painkillers,
             ItemType.SCP500,
-        };
+        ];
 
-        public static readonly List<ItemType> ScpItemTypes = new()
-        {
+        public static List<ItemType> ScpItemTypes { get; } = [
             ItemType.SCP018,
             ItemType.SCP1344,
             ItemType.SCP1853,
@@ -238,7 +234,22 @@ namespace XazeAPI.API.Helpers
             ItemType.SCP268,
             ItemType.SCP500,
             ItemType.SCP330
-        };
+        ];
+
+        public static List<ItemType> KeycardItemTypes { get; } = [
+            ItemType.KeycardJanitor,
+            ItemType.KeycardScientist,
+            ItemType.KeycardResearchCoordinator,
+            ItemType.KeycardZoneManager,
+            ItemType.KeycardGuard,
+            ItemType.KeycardMTFPrivate,
+            ItemType.KeycardContainmentEngineer,
+            ItemType.KeycardMTFOperative,
+            ItemType.KeycardMTFCaptain,
+            ItemType.KeycardFacilityManager,
+            ItemType.KeycardChaosInsurgency,
+            ItemType.KeycardO5
+        ];
         
         public static ThrownProjectile SpawnActive(
             this ThrowableItem item,
@@ -1761,36 +1772,6 @@ namespace XazeAPI.API.Helpers
             }
 
             return standard.DealtHealthDamage;
-        }
-
-        public static Component AddGameObjectComponent<T>(this Player plr) where T : Component
-        {
-            return plr.GameObject.AddComponent<T>();
-        }
-        
-        public static Component AddGameObjectComponent<T>(this ReferenceHub hub) where T : Component
-        {
-            return hub.gameObject.AddComponent<T>();
-        }
-        
-        public static Component AddGameObjectComponent<T>(this CustomPlayer plr) where T : Component
-        {
-            return plr.GameObject.AddComponent<T>();
-        }
-        
-        public static void RemoveGameObjectComponent<T>(this Player plr) where T : Component
-        {
-            Object.Destroy(plr.GameObject.GetComponent<T>());
-        }
-        
-        public static void RemoveGameObjectComponent<T>(this ReferenceHub hub) where T : Component
-        {
-            Object.Destroy(hub.gameObject.GetComponent<T>());
-        }
-        
-        public static void RemoveGameObjectComponent<T>(this CustomPlayer plr) where T : Component
-        {
-            Object.Destroy(plr.GameObject.GetComponent<T>());
         }
 
         public static Vector3 GetDoorPosInRoom(this Room room, DoorPermissionFlags permissions)

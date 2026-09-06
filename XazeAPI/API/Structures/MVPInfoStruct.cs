@@ -12,6 +12,7 @@ using System.Text;
 using RueI.Utils;
 using XazeAPI.API.Enums;
 using XazeAPI.API.Helpers;
+using XazeAPI.Features;
 
 namespace XazeAPI.API.Structures
 {
@@ -42,7 +43,7 @@ namespace XazeAPI.API.Structures
                 .Append(InfoType == MVPInfoType.FirstToEscape ? MainHelper.getMinutes(Data) : Data);
         }
         
-        public MVPInfoStruct(CustomPlayer plr, float data, string mvpMessage, MVPInfoType infoType)
+        public MVPInfoStruct(XazePlayer plr, float data, string mvpMessage, MVPInfoType infoType)
         {
             InfoType = infoType;
             Nickname = plr.Username;

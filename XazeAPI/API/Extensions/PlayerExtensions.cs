@@ -5,12 +5,12 @@
 // 
 // I <3 🦈s :3c
 
-using EclipsePlugin.API.CustomModules;
 using ProjectMER.Commands.Modifying.Scale.SubCommands;
 using XazeAPI.API.EffectStacks;
 using XazeAPI.API.Events;
 using XazeAPI.API.Events.Handler;
 using XazeAPI.API.Helpers;
+using XazeAPI.API.Stats;
 
 namespace XazeAPI.API.Extensions
 {
@@ -248,7 +248,7 @@ namespace XazeAPI.API.Extensions
                 target.playerStats.KillPlayer(vaporizeHandler);
             }
             
-            public void AddEffect<T>(Func<byte> intensityCalc, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensityCalc, duration);
+            public void AddEffect<T>(Func<int> intensityCalc, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensityCalc, duration);
             public void AddEffect<T>(byte intensity = 1, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensity, duration);
             public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => target.AddEffect(typeof(T), stack);
 
@@ -260,7 +260,7 @@ namespace XazeAPI.API.Extensions
                     Duration = duration
                 });
 
-            public void AddEffect(Type effectType, Func<byte> intensityCalc, float duration = 0) => target.AddEffect(
+            public void AddEffect(Type effectType, Func<int> intensityCalc, float duration = 0) => target.AddEffect(
                 effectType, 
                 new EffectStack(intensityCalc)
                 {
@@ -323,7 +323,7 @@ namespace XazeAPI.API.Extensions
                 target.ReferenceHub.VaporizePlayer(attacker?.ReferenceHub);
             }
             
-            public void AddEffect<T>(Func<byte> intensityCalc, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensityCalc, duration);
+            public void AddEffect<T>(Func<int> intensityCalc, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensityCalc, duration);
             public void AddEffect<T>(byte intensity = 1, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensity, duration);
             public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => target.AddEffect(typeof(T), stack);
 
@@ -335,7 +335,7 @@ namespace XazeAPI.API.Extensions
                     Duration = duration
                 });
 
-            public void AddEffect(Type effectType, Func<byte> intensityCalc, float duration = 0) => target.AddEffect(
+            public void AddEffect(Type effectType, Func<int> intensityCalc, float duration = 0) => target.AddEffect(
                 effectType, 
                 new EffectStack(intensityCalc)
                 {

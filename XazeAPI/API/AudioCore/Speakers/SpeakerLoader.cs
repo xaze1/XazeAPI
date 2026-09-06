@@ -30,16 +30,11 @@ public class SpeakerLoader : MonoBehaviour
     public static event Action<SpeakerLoader, string> OnTrackSelected;
     public static event TrackFinished OnFinishedTrack;
     
-    public CustomSpeakerEngine SendEngine { private set; get; }
-    public TimeSpan CurrentTimePosition => _audioPlayer.CurrentTime;
-    public bool IsPlaying => !_audioPlayer.HasEnded;
-    public bool IsFinished => _audioPlayer.HasEnded;
-    
-    [CanBeNull] public event Action Ended
-    {
-        add => _audioPlayer.Ended += value;
-        remove => _audioPlayer.Ended -= value;
-    }
+    public AudioPlayer Base { get; private set; }
+    public CustomSpeakerEngine SendEngine { get; private set; }
+    public TimeSpan CurrentTimePosition => Base.CurrentTime;
+    public bool IsPlaying => !Base.HasEnded;
+    public bool IsFinished => Base.HasEnded;
 
     public FakePlayerCustomHearSoundCheck HearOverride
     {
@@ -49,23 +44,16 @@ public class SpeakerLoader : MonoBehaviour
 
     public SpeakerSettings Settings
     {
-        get => new()
-        {
-            IsSpatial = _audioPlayer.Speaker.IsSpatial,
-            MaxDistance =  _audioPlayer.Speaker.MaxDistance,
-            MinDistance =  _audioPlayer.Speaker.MinDistance,
-            Volume =  _audioPlayer.Speaker.Volume,
-        };
-        set => _audioPlayer.ApplySettings(value);
+        get => SpeakerSettings.From(Base);
+        set => Base.ApplySettings(value);
     }
     
     public double VolumePercentage
     {
-        get => _audioPlayer.MasterAmplification * 200;
+        get => Base.MasterAmplification * 200;
         set => SetVolume(value);
     }
     
-    private AudioPlayer _audioPlayer;
     private string _trackName;
 
     public void Play(string filePath)
@@ -74,7 +62,7 @@ public class SpeakerLoader : MonoBehaviour
         {
             OnTrackSelecting?.Invoke(this);
             _trackName = filePath;
-            _audioPlayer.UseFile(filePath);
+            Base.UseFile(filePath);
             OnTrackSelected?.Invoke(this, _trackName);
         }
         catch (FileNotFoundException)
@@ -91,18 +79,18 @@ public class SpeakerLoader : MonoBehaviour
 
     public void Stop()
     {
-        _audioPlayer.WithoutProvider();
+        Base.WithoutProvider();
     }
 
     public SpeakerLoader SetVolume(double volume)
     {
-        _audioPlayer.WithMasterAmplification((float)volume/200);
+        Base.WithMasterAmplification((float)volume/200);
         return this;
     }
 
     public SpeakerLoader SetPersonalization(Func<Player, SpeakerSettings?, SpeakerSettings> personalization)
     {
-        _audioPlayer.WithLivePersonalizedSendEngine((player, current) => personalization(player, current),SendEngine);
+        Base.WithLivePersonalizedSendEngine((player, current) => personalization(player, current),SendEngine);
         return this;
     }
 
@@ -118,22 +106,22 @@ public class SpeakerLoader : MonoBehaviour
 
     private void Awake()
     {
-        _audioPlayer = Player.TryGet(gameObject, out _) ? AudioPlayerPool.Rent(SpeakerSettings.Default, gameObject.transform) : AudioPlayerPool.Rent(SpeakerSettings.GloballyAudible with
+        Base = Player.TryGet(gameObject, out _) ? AudioPlayerPool.Rent(SpeakerSettings.Default, gameObject.transform) : AudioPlayerPool.Rent(SpeakerSettings.GloballyAudible with
         {
             IsSpatial = false
         });
-        _audioPlayer.AlwaysRead = false;
+        Base.AlwaysRead = false;
         SendEngine = new();
-        _audioPlayer.WithSendEngine(SendEngine);
-        _audioPlayer.Ended += OnEnded;
+        Base.WithSendEngine(SendEngine);
+        Base.Ended += OnEnded;
         
-        AudioSpeakers[_audioPlayer.Speaker] = this;
+        AudioSpeakers[Base.Speaker] = this;
     }
 
     private void OnDestroy()
     {
         Stop();
-        AudioSpeakers.Remove(_audioPlayer.Speaker);
-        AudioPlayerPool.Return(_audioPlayer);
+        AudioSpeakers.Remove(Base.Speaker);
+        AudioPlayerPool.Return(Base);
     }
 }

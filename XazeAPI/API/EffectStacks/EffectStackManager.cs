@@ -30,6 +30,7 @@ public class EffectStackManager : MonoBehaviour
         typeof(SeveredEyes),
         typeof(SeveredHands),
         typeof(Blindness),
+        typeof(PocketCorroding),
     ];
     
     [ThreadStatic]
@@ -110,21 +111,22 @@ public class EffectStackManager : MonoBehaviour
         if (_owner == null || !_owner.TryGetEffect(effectType, out var effect))
             return;
 
-        byte intensity = 0;
+        int intensity = 0;
         stacks.Sort((a, b) => a.MaxIntensity.CompareTo(b.MaxIntensity));
         foreach (var stack in stacks)
         {
             if (stack.IsActive)
-                intensity = (byte)Mathf.Clamp(intensity + stack.Intensity, 0, Mathf.Min(stack.MaxIntensity, effect.MaxIntensity));
+                intensity = Mathf.Min(intensity + stack.Intensity, Mathf.Min(stack.MaxIntensity, effect.MaxIntensity));
         }
 
+        intensity = Mathf.Max(intensity, 0);
         if (effect.Intensity == intensity)
             return;
 
         try
         {
             IsInternalCall = true;
-            effect.ServerSetState(intensity);
+            effect.ServerSetState((byte)intensity);
         }
         finally
         {
@@ -162,7 +164,7 @@ public class EffectStackManager : MonoBehaviour
             try
             {
                 IsInternalCall = true;
-                _owner.EnableEffect(effectType, stack.Intensity, stack.Duration);
+                _owner.EnableEffect(effectType, (byte)stack.Intensity, stack.Duration);
             }
             finally
             {
@@ -178,7 +180,7 @@ public class EffectStackManager : MonoBehaviour
                 try
                 {
                     IsInternalCall = true;
-                    _owner.EnableEffect(effectType, stack.Intensity, stack.Duration);
+                    _owner.EnableEffect(effectType, (byte)stack.Intensity, stack.Duration);
                 }
                 finally
                 {
@@ -208,7 +210,7 @@ public class EffectStackManager : MonoBehaviour
     
     public bool RemoveStack(Type effectType, EffectStack stack)
     {
-        if (_owner == null || !stack.CanBeRemoved)
+        if (_owner == null)
             return false;
         
         if (!Stacks.TryGetValue(effectType, out var stacks))

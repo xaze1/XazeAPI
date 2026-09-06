@@ -46,7 +46,10 @@ public static class DelegateExtensions
             }
             catch (Exception ex)
             {
-                onException?.Invoke(ex);
+                if (onException == null)
+                    Logging.Error(ex);
+                else
+                    onException.Invoke(ex);
             }
         }
     }

@@ -14,11 +14,11 @@ namespace XazeAPI.API.EffectStacks;
 
 public class EffectStack()
 {
-    public bool IsActive => Duration != 0f && TimeLeft > 0f || Intensity > 0;
+    public bool IsActive => Duration == 0f || TimeLeft > 0f;
 
     public byte MaxIntensity { get; set; } = byte.MaxValue;
 
-    public byte Intensity
+    public int Intensity
     {
         get
         {
@@ -57,7 +57,7 @@ public class EffectStack()
         }
         set;
     } = true;
-    [CanBeNull] private readonly Func<byte> _intensityCalc;
+    [CanBeNull] private readonly Func<int> _intensityCalc;
     [CanBeNull] private readonly Func<bool> _canBeRemovedCalc;
 
     public void RefreshTime(float deltaTime)
@@ -73,7 +73,7 @@ public class EffectStack()
         _canBeRemovedCalc = canBeRemovedCalc;
     }
 
-    public EffectStack(Func<byte> intensityCalc, [CanBeNull] Func<bool> canBeRemovedCalc = null) : this()
+    public EffectStack(Func<int> intensityCalc, [CanBeNull] Func<bool> canBeRemovedCalc = null) : this()
     {
         _intensityCalc = intensityCalc;
         _canBeRemovedCalc = canBeRemovedCalc;

@@ -7,7 +7,6 @@
 
 using System;
 using System.Reflection;
-using EclipsePlugin.API.CustomModules;
 using HarmonyLib;
 using LabApi.Events.Handlers;
 using LabApi.Features;
@@ -22,6 +21,7 @@ using XazeAPI.API.AudioCore.Speakers;
 using XazeAPI.API.EffectStacks;
 using XazeAPI.API.Events.Handler;
 using XazeAPI.API.Helpers;
+using XazeAPI.API.Stats;
 
 namespace XazeAPI;
 
@@ -31,7 +31,7 @@ public class APILoader : Plugin
     public override string Name => "XazeAPI";
     public override string Description => "API Library by xaze_";
     public override string Author => "xaze_";
-    public override Version Version => new(1, 2, 3);
+    public override Version Version => new(1, 2, 5);
     public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
     public override LoadPriority Priority =>  LoadPriority.Highest;
 
