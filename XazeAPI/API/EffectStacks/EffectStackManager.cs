@@ -134,12 +134,12 @@ public class EffectStackManager : MonoBehaviour
         }
     }
 
-    public void AddStack<T>(byte intensity, float duration) where T : StatusEffectBase
+    public void AddStack<T>(string id, byte intensity, float duration) where T : StatusEffectBase
     {
         if (_owner == null)
             return;
 
-        AddStack<T>(new EffectStack
+        AddStack<T>(new EffectStack(id)
         {
             Intensity =  intensity, 
             Duration = duration
@@ -158,6 +158,9 @@ public class EffectStackManager : MonoBehaviour
     {
         if (_owner == null)
             return;
+
+        if (stack.IsPrefab)
+            throw new ArgumentException("Cannot add a prefab " + nameof(EffectStack) + ". Use " + nameof(EffectStack.Clone) + " when adding");
 
         if (BlacklistedEffects.Contains(effectType))
         {
@@ -198,6 +201,24 @@ public class EffectStackManager : MonoBehaviour
         
         stacks.Add(stack);
         UpdateIntensity(effectType, stacks);
+    }
+    
+    [CanBeNull]
+    public EffectStack GetStack<T>(string id) where T : StatusEffectBase => GetStack(typeof(T), id);
+    
+    [CanBeNull]
+    public EffectStack GetStack(Type effectType, string id)
+    {
+        if (id.IsNullOrWhiteSpace())
+            throw new ArgumentException(nameof(id) + " cannot be null or empty");
+
+        if (!Stacks.TryGetValue(effectType, out var stacks))
+            return null;
+
+        if (!stacks.TryGetFirst(s => s.Id == id, out var stack))
+            return null;
+
+        return stack;
     }
     
     public bool RemoveStack<T>(EffectStack stack) where T : StatusEffectBase

@@ -437,60 +437,6 @@ namespace XazeAPI.API.Helpers
             }
         }
 
-        public static void addIntensity(this Player player, string effect, int intensity, int maxIntensity, float duration = 0f)
-        {
-            addIntensity(player.ReferenceHub, effect, intensity, maxIntensity, duration);
-        }
-        
-        public static void addIntensity(this ReferenceHub player, string effect, int intensity, int maxIntensity, float duration = 0f)
-        {
-            player.playerEffectsController.TryGetEffect(effect, out StatusEffectBase effectBase);
-
-            if (maxIntensity == 0 || maxIntensity > effectBase.MaxIntensity)
-                maxIntensity = effectBase.MaxIntensity;
-
-            effectBase.Intensity = (byte)Mathf.Clamp(effectBase.Intensity + intensity, 0, maxIntensity);
-        }
-
-        public static void addIntensity<T>(this Player player, int intensity, int maxIntensity = 0, float duration = 0f) where T : StatusEffectBase
-        {
-            addIntensity<T>(player.ReferenceHub, intensity, maxIntensity, duration);
-        }
-        
-        public static void addIntensity<T>(this ReferenceHub player, int intensity, int maxIntensity = 0, float duration = 0f) where T : StatusEffectBase
-        {
-            player.playerEffectsController.TryGetEffect(out T effectBase);
-
-            if (maxIntensity is 0 or > 255)
-                maxIntensity = effectBase.MaxIntensity;
-
-            effectBase.Intensity = (byte)Mathf.Clamp(effectBase.Intensity + intensity, 0, maxIntensity);
-
-            if (duration == 0) return;
-            effectBase.Duration = duration;
-            effectBase.TimeLeft = duration;
-        }
-        
-        public static void removeIntensity<T>(this ReferenceHub player, int intensity, int minIntensity = 0, float duration = 0f) where T : StatusEffectBase
-        {
-            player.playerEffectsController.TryGetEffect(out T effectBase);
-
-            if (minIntensity < 0)
-                minIntensity = 0;
-
-            effectBase.Intensity = (byte)Mathf.Clamp(effectBase.Intensity - intensity, minIntensity, 255);
-
-            if (duration == 0) return;
-            effectBase.Duration = duration;
-        }
-        
-        public static void removeIntensity<T>(this Player player, int intensity, int minIntensity = 0, float duration = 0f) where T : StatusEffectBase
-        {
-            player.ReferenceHub.removeIntensity<T>(intensity, minIntensity, duration);
-        }
-
-
-
         public static bool getArrayText(ArraySegment<string> array, int indexToStartFrom, out string text, int lengthLimit = 0)
         {
             text = string.Empty;

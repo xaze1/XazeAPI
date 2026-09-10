@@ -32,6 +32,9 @@ public class ContainerBuilder
 
     public ContainerBuilder WithTextDisplay(string content)
     {
+        if (content.IsNullOrWhiteSpace())
+            return this;
+        
         _components.Add(new TextDisplay(content));
         return this;
     }
@@ -47,7 +50,11 @@ public class ContainerBuilder
                 .AppendLine("**Stack Trace**:")
                 .AppendLine(ex.StackTrace);
         });
-        _components.Add(new TextDisplay(StringBuilderPool.Shared.ToStringReturn(sb)));
+        var content = StringBuilderPool.Shared.ToStringReturn(sb);
+        if (content.IsNullOrWhiteSpace())
+            return this;
+
+        _components.Add(new TextDisplay(content));
         return this;
     }
 

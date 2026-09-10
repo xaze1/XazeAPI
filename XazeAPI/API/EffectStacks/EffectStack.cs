@@ -12,9 +12,11 @@ using XazeAPI.API.Extensions;
 
 namespace XazeAPI.API.EffectStacks;
 
-public class EffectStack()
+public class EffectStack(string id)
 {
+    public string Id { get; } = id;
     public bool IsActive => Duration == 0f || TimeLeft > 0f;
+    public bool IsPrefab { get; private init; }
 
     public byte MaxIntensity { get; set; } = byte.MaxValue;
 
@@ -68,14 +70,35 @@ public class EffectStack()
         TimeLeft -= deltaTime;
     }
 
-    public EffectStack([CanBeNull] Func<bool> canBeRemovedCalc = null) : this()
+    public EffectStack Clone()
+    {
+        var stack = new EffectStack(this)
+        {
+            IsPrefab = false
+        };
+        return stack;
+    }
+
+    public EffectStack(string id, [CanBeNull] Func<bool> canBeRemovedCalc = null) : this(id)
     {
         _canBeRemovedCalc = canBeRemovedCalc;
     }
 
-    public EffectStack(Func<int> intensityCalc, [CanBeNull] Func<bool> canBeRemovedCalc = null) : this()
+    public EffectStack(string id, Func<int> intensityCalc, [CanBeNull] Func<bool> canBeRemovedCalc = null) : this(id)
     {
         _intensityCalc = intensityCalc;
         _canBeRemovedCalc = canBeRemovedCalc;
+    }
+
+    private EffectStack(EffectStack stack) : this(stack.Id)
+    {
+        MaxIntensity = stack.MaxIntensity;
+        Duration = stack.Duration;
+        
+        CanBeRemoved = stack.CanBeRemoved;
+        Intensity = stack.Intensity;
+        
+        _intensityCalc = stack._intensityCalc;
+        _canBeRemovedCalc = stack._canBeRemovedCalc;
     }
 }

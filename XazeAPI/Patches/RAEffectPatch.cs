@@ -67,7 +67,7 @@ public static class RAEffectPatches
                 if (EffectStackManager.BlacklistedEffects.Contains(effectType))
                     effect.ServerSetState(intensity, duration);
                 else if (intensity > 0)
-                    hub.AddEffect(effectType, intensity, duration);
+                    hub.AddEffect(Guid.NewGuid().ToString(), effectType, intensity, duration);
                 else
                     hub.RemoveEffect(effectType);
                 

@@ -5,12 +5,13 @@
 // 
 // I <3 🦈s :3c
 
-using ProjectMER.Commands.Modifying.Scale.SubCommands;
+using JetBrains.Annotations;
+using Utils;
 using XazeAPI.API.EffectStacks;
 using XazeAPI.API.Events;
 using XazeAPI.API.Events.Handler;
-using XazeAPI.API.Helpers;
 using XazeAPI.API.Stats;
+using XazeAPI.Features.AoEs;
 
 namespace XazeAPI.API.Extensions
 {
@@ -29,7 +30,6 @@ namespace XazeAPI.API.Extensions
     using PlayerStatsSystem;
     using System;
     using System.Linq;
-    using System.Reflection;
     using UnityEngine;
     using LabApi.Features.Wrappers;
     using LabApi.Events.Arguments.PlayerEvents;
@@ -38,167 +38,199 @@ namespace XazeAPI.API.Extensions
 
     public static class PlayerExtensions
     {
-        extension(ReferenceHub target)
+        extension(Player plr)
         {
-            public void SendConsoleMessage(string message, string color) => target.gameConsoleTransmission.SendToClient(message, color);
-
-            public CoroutineHandle createAura(string effectName = null, Action customFunction = null)
+            public FollowingAerial<T> CreateAura<T>(T aerialEffect) where T : AerialEffect
             {
-                customFunction?.Invoke();
-
-                return Timing.CallPeriodically(10000f, 0.5f, () =>
-                {
-
-                    if (!target.IsAlive())
-                    {
-                        return;
-                    }
-
-                    foreach (Player player in Player.List)
-                    {
-                        if (player.ReferenceHub == target || target.IsSCP() && player.IsSCP)
-                        {
-                            continue;
-                        }
-
-                        if (!(Vector3.Distance(target.transform.position, player.ReferenceHub.transform.position) <=
-                              5)) continue;
-                        if (effectName == null) continue;
-                        PlayerEffectsController effectController = player.ReferenceHub.playerEffectsController;
-
-                        effectController.ChangeState(effectName, 1);
-                    }
-                }, () => target.createAura(effectName, customFunction));
+                return FollowingAerial<T>.Create(plr, aerialEffect);
             }
-
-            public CoroutineHandle createAura(DamageHandlerBase handler = null, string effectName = null, Func<bool> customFunction = null)
+            
+            public FollowingAerial<DelegateAerial> CreateAura(Action<Player> action)
             {
-                Footprint footprint = new Footprint(target);
-                CoroutineHandle handle = Timing.CallPeriodically(10f, 0.5f, () =>
-                {
-                    if (customFunction != null)
-                    {
-                        if (!customFunction())
-                        {
-                            return;
-                        }
-                    }
-
-                    if (!footprint.Role.IsAlive())
-                    {
-                        return;
-                    }
-
-                    foreach (Player player in Player.List)
-                    {
-                        if (player.ReferenceHub == footprint.Hub || footprint.Role.GetTeam() == player.Team)
-                        {
-                            continue;
-                        }
-
-                        if (!(Vector3.Distance(target.transform.position, player.Position) <= 5)) continue;
-                        if (effectName != null)
-                        {
-                            PlayerEffectsController effectController = player.ReferenceHub.playerEffectsController;
-
-                            effectController.ChangeState(effectName, 1);
-                        }
-
-                        if (handler == null)
-                        {
-                            try
-                            {
-                                DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), footprint, DisruptorActionModule.FiringState.FiringSingle), player.Camera.forward, -1f);
-                                player.ReferenceHub.playerStats.DealDamage(vaporizeHandler);
-                            }
-                            catch (Exception ex)
-                            {
-                                ErrorHelper.ErrorLogStyling(ex, $"{MethodBase.GetCurrentMethod().Name} failed");
-                            }
-                        }
-                        else
-                        {
-                            player.ReferenceHub.playerStats.DealDamage(handler);
-                        }
-                    }
-                }, () => target.createAura(handler, effectName, customFunction));
-                return handle;
+                return FollowingAerial<DelegateAerial>.Create(plr, new DelegateAerial(action, plr.Position));
             }
-
-            public CoroutineHandle createAura(float distance, Action<Player> customFunction)
+            
+            public FollowingAerial<StatusEffectAerial<T>> CreateAura<T>(int intensity, float duration) where T : StatusEffectBase
             {
-                Footprint footprint = new Footprint(target);
-                CoroutineHandle handle = Timing.CallPeriodically(10f, 0.5f, () =>
-                {
-                    if (!footprint.Role.IsAlive())
-                    {
-                        return;
-                    }
-
-                    foreach (Player player in Player.List)
-                    {
-                        if (player.ReferenceHub == footprint.Hub || footprint.Role.GetTeam() == player.Team)
-                        {
-                            continue;
-                        }
-
-                        if (Vector3.Distance(target.transform.position, player.Position) <= distance)
-                        {
-                            customFunction(player);
-                        }
-                    }
-                }, () => target.createAura(distance, customFunction));
-                return handle;
+                return FollowingAerial<StatusEffectAerial<T>>.Create(plr, new StatusEffectAerial<T>(plr.Position, intensity, duration));
             }
-        }
-
-        /// <param name="attacker">Target which gets vaporized</param>
-        extension(Player attacker)
-        {
-            public CoroutineHandle createAura(float damageMultiplier, float damagePerMultiplier, DeathTranslation deathTranslation, Action customFunction = null)
-            {
-                return Timing.CallPeriodically(10000f, 0.5f, () =>
-                {
-                    customFunction?.Invoke();
-
-                    if (!attacker.IsAlive)
-                    {
-                        return;
-                    }
-
-                    foreach (Player player in Player.List)
-                    {
-                        if (player.ReferenceHub == attacker.ReferenceHub || attacker.IsSCP && player.IsSCP)
-                        {
-                            continue;
-                        }
-
-                        if (!(Vector3.Distance(attacker.ReferenceHub.transform.position,
-                                player.ReferenceHub.transform.position) <= 5)) continue;
-                    
-                        float damage = damageMultiplier * damagePerMultiplier;
-                        UniversalDamageHandler handler = new(damage, deathTranslation);
-                        player.ReferenceHub.playerStats.DealDamage(handler);
-                    }
-                }, () => attacker.createAura(damageMultiplier, damagePerMultiplier, deathTranslation, customFunction));
-
-            }
-
-            public HealthStat GetHealthStat() => attacker.ReferenceHub.GetHealthStat();
-            public void changeMaxHealth(float newMaxHealth) => attacker.ReferenceHub.changeMaxHealth(newMaxHealth);
+            
+            public HealthStat GetHealthStat() => plr.ReferenceHub.GetHealthStat();
+            public void changeMaxHealth(float newMaxHealth) => plr.ReferenceHub.changeMaxHealth(newMaxHealth);
 
             /// <summary>
             /// Vaporizes a Player instantly
             /// </summary>
             public void VaporizePlayer()
             {
-                DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(attacker.ReferenceHub), DisruptorActionModule.FiringState.FiringSingle), attacker.Camera.forward, -1f);
-                attacker.ReferenceHub.playerStats.KillPlayerWithEvents(vaporizeHandler);
+                DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(plr.ReferenceHub), DisruptorActionModule.FiringState.FiringSingle), plr.Camera.forward, -1f);
+                plr.ReferenceHub.playerStats.KillPlayerWithEvents(vaporizeHandler);
             }
+            
+            /// <summary>
+            /// Vaporizes a Player instantly
+            /// </summary>
+            /// <param name="attacker">Attacker which vaporizes the Target</param>
+            public void VaporizePlayer(ReferenceHub attacker = null)
+            {
+                plr.ReferenceHub.VaporizePlayer(attacker);
+            }
+
+            /// <summary>
+            /// Vaporizes a Player instantly
+            /// </summary>
+            /// <param name="attacker">Attacker which vaporizes the Target</param>
+            public void VaporizePlayer(Player attacker = null)
+            {
+                plr.ReferenceHub.VaporizePlayer(attacker?.ReferenceHub);
+            }
+            
+            public void AddEffect<T>(string id, Func<int> intensityCalc, float duration = 0) where T : StatusEffectBase => plr.AddEffect(id, typeof(T), intensityCalc, duration);
+            public void AddEffect<T>(string id, byte intensity = 1, float duration = 0) where T : StatusEffectBase => plr.AddEffect(id, typeof(T), intensity, duration);
+            public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => plr.AddEffect(typeof(T), stack);
+
+            public void AddEffect(string id, Type effectType, byte intensity = 1, float duration = 0) => plr.AddEffect(
+                effectType,
+                new EffectStack(id)
+                {
+                    Intensity = intensity,
+                    Duration = duration
+                });
+
+            public void AddEffect(string id, Type effectType, Func<int> intensityCalc, float duration = 0) => plr.AddEffect(
+                effectType, 
+                new EffectStack(id, intensityCalc)
+                {
+                    Duration = duration
+                });
+
+            public void AddEffect(Type effectType, EffectStack stack)
+            {
+                if (!EffectStackManager.TryGet(plr, out var manager))
+                    return;
+                
+                if (stack.IsPrefab)
+                    stack = stack.Clone();
+                
+                manager.AddStack(effectType, stack);
+            }
+
+            [CanBeNull]
+            public EffectStack GetEffectStack<T>(string id) where T : StatusEffectBase => plr.GetEffectStack(typeof(T), id);
+            
+            [CanBeNull]
+            public EffectStack GetEffectStack(Type effectType, string id)
+            {
+                if (id.IsNullOrWhiteSpace())
+                    throw new ArgumentNullException(nameof(id) + " cannot be null or empty.");
+                
+                if (!EffectStackManager.TryGet(plr, out var manager))
+                    return null;
+                
+                return manager.GetStack(effectType, id);
+            }
+
+            public bool TryGetEffectStack<T>(string id, out EffectStack stack) where T : StatusEffectBase => plr.TryGetEffectStack(typeof(T), id, out stack);
+            public bool TryGetEffectStack(Type effectType, string id, out EffectStack stack)
+            {
+                if (id.IsNullOrWhiteSpace())
+                    throw new ArgumentNullException(nameof(id) + " cannot be null or empty.");
+
+                stack = null;
+                if (!EffectStackManager.TryGet(plr, out var manager))
+                    return false;
+                
+                stack =  manager.GetStack(effectType, id);
+                return stack != null;
+            }
+            
+            public bool RemoveEffect<T>(EffectStack stack) where T : StatusEffectBase => plr.RemoveEffect(typeof(T), stack);
+            public bool RemoveEffect(Type effectType, EffectStack stack)
+            {
+                if (!EffectStackManager.TryGet(plr, out var manager))
+                    return false;
+                
+                return manager.RemoveStack(effectType, stack);
+            }
+
+            public bool RemoveEffect<T>(string id) where T : StatusEffectBase => plr.RemoveEffect(typeof(T), id);
+            public bool RemoveEffect(Type effectType, string id)
+            {
+                if (!EffectStackManager.TryGet(plr, out var manager))
+                    return false;
+                
+                return manager.RemoveStack(effectType, manager.GetStack(effectType, id));
+            }
+
+            public bool RemoveEffect<T>() where T : StatusEffectBase => plr.RemoveEffect(typeof(T));
+            public bool RemoveEffect(Type effectType)
+            {
+                if (!EffectStackManager.TryGet(plr, out var manager))
+                    return false;
+                
+                return manager.RemoveStacks(effectType);
+            }
+            
+            public void RemoveEffects()
+            {
+                if (!EffectStackManager.TryGet(plr, out var manager))
+                    return;
+                
+                manager.RemoveStacks();
+            }
+
+            internal void EnableEffect(Type effectType, byte intensity, float duration = 0, bool addDuration = false)
+            {
+                plr.ReferenceHub.playerEffectsController.GetEffect(effectType)?.ServerSetState(intensity, duration, addDuration);
+            }
+
+            internal void DisableEffect(Type effectType)
+            {
+                plr.ReferenceHub.playerEffectsController.GetEffect(effectType)?.ServerDisable();
+            }
+            
+            internal bool TryGetEffect(Type effectType, out StatusEffectBase effect)
+            {
+                effect = plr.ReferenceHub.playerEffectsController.GetEffect(effectType);
+                return effect != null;
+            }
+            
+            public void Explode()
+            {
+                if (!plr.IsAlive) 
+                    return;
+                
+                ExplosionUtils.ServerExplode(plr.ReferenceHub, ExplosionType.PinkCandy);
+            }
+            
+            public void SetScale(Vector3 Scale) => plr.ReferenceHub.SetScale(Scale);
+            
+            public void RemoveItems(ItemType type)
+            {
+                var Items = plr.Items.ToList();
+                foreach(var item in Items)
+                {
+                    if (item.Type != type)
+                        continue;
+
+                    plr.RemoveItem(item);
+                }
+            }
+
+            public void RemoveAmmo(ItemType ammo, int amount)
+            {
+                plr.SetAmmo(ammo, (ushort)(plr.GetAmmo(ammo) - amount));
+            }
+            
+            public void GiveLoadout(RoleTypeId role, bool resetInventory = false) => GiveLoadout(plr.ReferenceHub, role, resetInventory);
+            
+            public CustomHealthStat? getCustomHealthStat() => plr.ReferenceHub.getCustomHealthStat();
         }
 
         extension(ReferenceHub hub)
         {
+            public void SendConsoleMessage(string message, string color) => hub.gameConsoleTransmission.SendToClient(message, color);
+            
             public HealthStat GetHealthStat()
             {
                 return hub.playerStats.GetModule<HealthStat>();
@@ -208,34 +240,35 @@ namespace XazeAPI.API.Extensions
             {
                 hub.playerStats.GetModule<HealthStat>().MaxValue = newMaxHealth;
             }
-        }
-
-#nullable enable
-        public static CustomHealthStat? getCustomHealthStat(this ReferenceHub hub)
-        {
-            if (!hub.playerStats.TryGetModule(out CustomHealthStat? stat))
+            
+            [CanBeNull]
+            public CustomHealthStat getCustomHealthStat()
             {
-                stat = hub.playerStats.GetModule<HealthStat>() as CustomHealthStat;
+                if (!hub.playerStats.TryGetModule(out CustomHealthStat stat))
+                {
+                    stat = hub.playerStats.GetModule<HealthStat>() as CustomHealthStat;
+                }
+
+                return stat;
             }
-
-            return stat;
-        }
-
-        public static CustomHealthStat? getCustomHealthStat(this Player plr) => plr.ReferenceHub.getCustomHealthStat();
-#nullable disable
-
-        /// <param name="target">Target which gets vaporized</param>
-        extension(ReferenceHub target)
-        {
+            
             /// <summary>
             /// Vaporizes a Player instantly
             /// </summary>
             /// <param name="attacker">Attacker which vaporizes the Target</param>
-            public void VaporizePlayer(ReferenceHub attacker = null)
+            public void VaporizePlayer(Player attacker)
             {
-                DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(target), DisruptorActionModule.FiringState.FiringSingle), target.PlayerCameraReference.forward, -1f);
-
-                target.playerStats.KillPlayerWithEvents(vaporizeHandler);
+                hub.VaporizePlayer(attacker.ReferenceHub);
+            }
+            
+            /// <summary>
+            /// Vaporizes a Player instantly
+            /// </summary>
+            /// <param name="attacker">Attacker which vaporizes the Target</param>
+            public void VaporizePlayer(ReferenceHub attacker)
+            {
+                DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(attacker), DisruptorActionModule.FiringState.FiringSingle), hub.PlayerCameraReference.forward, -1f);
+                hub.playerStats.KillPlayerWithEvents(vaporizeHandler);
             }
 
             /// <summary>
@@ -244,50 +277,53 @@ namespace XazeAPI.API.Extensions
             /// <param name="attacker">Attacker which vaporizes the Target</param>
             public void VaporizePlayer()
             {
-                DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(target),DisruptorActionModule.FiringState.FiringSingle), target.PlayerCameraReference.forward, -1f);
-                target.playerStats.KillPlayer(vaporizeHandler);
+                DisruptorDamageHandler vaporizeHandler = new(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(hub),DisruptorActionModule.FiringState.FiringSingle), hub.PlayerCameraReference.forward, -1f);
+                hub.playerStats.KillPlayer(vaporizeHandler);
             }
             
-            public void AddEffect<T>(Func<int> intensityCalc, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensityCalc, duration);
-            public void AddEffect<T>(byte intensity = 1, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensity, duration);
-            public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => target.AddEffect(typeof(T), stack);
+            public void AddEffect<T>(string id, Func<int> intensityCalc, float duration = 0) where T : StatusEffectBase => hub.AddEffect(id, typeof(T), intensityCalc, duration);
+            public void AddEffect<T>(string id, byte intensity = 1, float duration = 0) where T : StatusEffectBase => hub.AddEffect(id, typeof(T), intensity, duration);
+            public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => hub.AddEffect(typeof(T), stack);
 
-            public void AddEffect(Type effectType, byte intensity = 1, float duration = 0) => target.AddEffect(
+            public void AddEffect(string id, Type effectType, byte intensity = 1, float duration = 0) => hub.AddEffect(
                 effectType,
-                new EffectStack
+                new EffectStack(id)
                 {
                     Intensity = intensity,
                     Duration = duration
                 });
 
-            public void AddEffect(Type effectType, Func<int> intensityCalc, float duration = 0) => target.AddEffect(
+            public void AddEffect(string id, Type effectType, Func<int> intensityCalc, float duration = 0) => hub.AddEffect(
                 effectType, 
-                new EffectStack(intensityCalc)
+                new EffectStack(id, intensityCalc)
                 {
                     Duration = duration
                 });
 
             public void AddEffect(Type effectType, EffectStack stack)
             {
-                if (!EffectStackManager.TryGet(target, out var manager))
+                if (!EffectStackManager.TryGet(hub, out var manager))
                     return;
+
+                if (stack.IsPrefab)
+                    stack = stack.Clone();
                 
                 manager.AddStack(effectType, stack);
             }
             
-            public bool RemoveEffect<T>(EffectStack stack) where T : StatusEffectBase => target.RemoveEffect(typeof(T), stack);
+            public bool RemoveEffect<T>(EffectStack stack) where T : StatusEffectBase => hub.RemoveEffect(typeof(T), stack);
             public bool RemoveEffect(Type effectType, EffectStack stack)
             {
-                if (!EffectStackManager.TryGet(target, out var manager))
+                if (!EffectStackManager.TryGet(hub, out var manager))
                     return false;
                 
                 return manager.RemoveStack(effectType, stack);
             }
 
-            public bool RemoveEffect<T>() where T : StatusEffectBase => target.RemoveEffect(typeof(T));
+            public bool RemoveEffect<T>() where T : StatusEffectBase => hub.RemoveEffect(typeof(T));
             public bool RemoveEffect(Type effectType)
             {
-                if (!EffectStackManager.TryGet(target, out var manager))
+                if (!EffectStackManager.TryGet(hub, out var manager))
                     return false;
                 
                 return manager.RemoveStacks(effectType);
@@ -295,141 +331,76 @@ namespace XazeAPI.API.Extensions
             
             public void RemoveEffects()
             {
-                if (!EffectStackManager.TryGet(target, out var manager))
+                if (!EffectStackManager.TryGet(hub, out var manager))
                     return;
                 
                 manager.RemoveStacks();
             }
-        }
-
-        /// <param name="target">Target which gets vaporized</param>
-        extension(Player target)
-        {
-            /// <summary>
-            /// Vaporizes a Player instantly
-            /// </summary>
-            /// <param name="attacker">Attacker which vaporizes the Target</param>
-            public void VaporizePlayer(ReferenceHub attacker = null)
-            {
-                target.ReferenceHub.VaporizePlayer(attacker);
-            }
-
-            /// <summary>
-            /// Vaporizes a Player instantly
-            /// </summary>
-            /// <param name="attacker">Attacker which vaporizes the Target</param>
-            public void VaporizePlayer(Player attacker = null)
-            {
-                target.ReferenceHub.VaporizePlayer(attacker?.ReferenceHub);
-            }
             
-            public void AddEffect<T>(Func<int> intensityCalc, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensityCalc, duration);
-            public void AddEffect<T>(byte intensity = 1, float duration = 0) where T : StatusEffectBase => target.AddEffect(typeof(T), intensity, duration);
-            public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => target.AddEffect(typeof(T), stack);
-
-            public void AddEffect(Type effectType, byte intensity = 1, float duration = 0) => target.AddEffect(
-                effectType,
-                new EffectStack
+            public void SetScale(Vector3 newScale)
+            {
+                if (hub.roleManager.CurrentRole is not IFpcRole fpc)
                 {
-                    Intensity = intensity,
-                    Duration = duration
-                });
+                    return;
+                }
 
-            public void AddEffect(Type effectType, Func<int> intensityCalc, float duration = 0) => target.AddEffect(
-                effectType, 
-                new EffectStack(intensityCalc)
+                var scaleEvent = new PlayerScaleChanging(hub, newScale);
+                XazeEvents.OnPlayerScaleChanging(scaleEvent);
+
+                if (!scaleEvent.IsAllowed)
                 {
-                    Duration = duration
-                });
-
-            public void AddEffect(Type effectType, EffectStack stack)
-            {
-                if (!EffectStackManager.TryGet(target, out var manager))
                     return;
-                
-                manager.AddStack(effectType, stack);
-            }
+                }
 
-            public bool RemoveEffect<T>(EffectStack stack) where T : StatusEffectBase => target.RemoveEffect(typeof(T), stack);
-            public bool RemoveEffect(Type effectType, EffectStack stack)
-            {
-                if (!EffectStackManager.TryGet(target, out var manager))
-                    return false;
-                
-                return manager.RemoveStack(effectType, stack);
-            }
-
-            public bool RemoveEffect<T>() where T : StatusEffectBase => target.RemoveEffect(typeof(T));
-            public bool RemoveEffect(Type effectType)
-            {
-                if (!EffectStackManager.TryGet(target, out var manager))
-                    return false;
-                
-                return manager.RemoveStacks(effectType);
+                fpc.FpcModule.Motor.ScaleController.Scale = scaleEvent.NewScale;
             }
             
-            public void RemoveEffects()
+            public Player DisarmedBy()
             {
-                if (!EffectStackManager.TryGet(target, out var manager))
-                    return;
-                
-                manager.RemoveStacks();
-            }
+                var entry = DisarmedPlayers.Entries.Find(x => x.DisarmedPlayer == hub.netId);
 
-            internal void EnableEffect(Type effectType, byte intensity, float duration = 0, bool addDuration = false)
-            {
-                target.ReferenceHub.playerEffectsController.GetEffect(effectType)?.ServerSetState(intensity, duration, addDuration);
-            }
+                if (!Player.TryGet(entry.Disarmer, out Player disarmer))
+                {
+                    return null;
+                }
 
-            internal void DisableEffect(Type effectType)
-            {
-                target.ReferenceHub.playerEffectsController.GetEffect(effectType)?.ServerDisable();
+                return disarmer;
             }
             
-            internal bool TryGetEffect(Type effectType, out StatusEffectBase effect)
+            public bool TryGetInventoryItem(ushort serial, out ItemBase item)
             {
-                effect = target.ReferenceHub.playerEffectsController.GetEffect(effectType);
-                return effect != null;
+                return hub.inventory.UserInventory.Items.TryGetValue(serial, out item);
             }
-        }
-
-        /// <summary>
-        /// Vaporizes a Player instantly
-        /// </summary>
-        /// <param name="target">Target which gets vaporized</param>
-        /// <param name="attacker">Attacker which vaporizes the Target</param>
-        public static void VaporizePlayer(this ReferenceHub target, Player attacker = null)
-        {
-            target.VaporizePlayer(attacker.ReferenceHub);
-        }
-
-        public static void Explode(this Player plr)
-        {
-            if (!plr.IsAlive) return;
-
-            MainHelper.CreateThrowable(ItemType.GrenadeHE).SpawnActive(plr.Position, 0.01f, plr);
-        }
-
-        public static void SetScale(this ReferenceHub plr, Vector3 newScale)
-        {
-            if (plr.roleManager.CurrentRole is not IFpcRole fpc)
+            
+            public bool TryGetInventoryItem(ItemIdentifier identifier, out ItemBase item) => hub.TryGetInventoryItem(identifier.SerialNumber, out item);
+            
+            public void FlingPlayer(float strength = 1f)
             {
-                return;
+                var handler = new DisruptorDamageHandler(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(hub), DisruptorActionModule.FiringState.FiringRapid), hub.PlayerCameraReference.forward, -1f)
+                {
+                    StartVelocity = hub.PlayerCameraReference.forward.NormalizeIgnoreY() * 15f * strength
+                };
+                handler.StartVelocity.y = 2f;
+                hub.playerStats.KillPlayer(handler);
+            }
+            
+            public void RemoveAmmo(ItemType ammo, int amount)
+            {
+                Inventory inv = hub.inventory;
+                inv.ServerSetAmmo(ammo, (ushort)(inv.GetCurAmmo(ammo) - amount));
             }
 
-            var scaleEvent = new PlayerScaleChanging(plr, newScale);
-            XazeEvents.OnPlayerScaleChanging(scaleEvent);
-
-            if (!scaleEvent.IsAllowed)
+            public void GiveLoadout(RoleTypeId role, bool resetInventory = false)
             {
-                return;
+                if (!role.TryGetRoleTemplate<PlayerRoleBase>(out var prb))
+                {
+                    return;
+                }
+
+                InventoryItemProvider.ServerGrantLoadout(hub, prb, resetInventory);
             }
-
-            fpc.FpcModule.Motor.ScaleController.Scale = scaleEvent.NewScale;
         }
-
-        public static void SetScale(this Player plr, Vector3 Scale) => plr.ReferenceHub.SetScale(Scale);
-
+        
         extension(PlayerEffectsController controller)
         {
             public StatusEffectBase GetEffect(Type effectType)
@@ -553,74 +524,5 @@ namespace XazeAPI.API.Extensions
                 return ragdoll;
             }
         }
-
-        public static Player DisarmedBy(this ReferenceHub hub)
-        {
-            var entry = DisarmedPlayers.Entries.Find(x => x.DisarmedPlayer == hub.netId);
-
-            if (!Player.TryGet(entry.Disarmer, out Player disarmer))
-            {
-                return null;
-            }
-
-            return disarmer;
-        }
-
-        public static bool TryGetInventoryItem(this ReferenceHub hub, ushort serial, out ItemBase item)
-        {
-            return hub.inventory.UserInventory.Items.TryGetValue(serial, out item);
-        }
-        public static bool TryGetInventoryItem(this ReferenceHub hub, ItemIdentifier identifier, out ItemBase item) => hub.TryGetInventoryItem(identifier.SerialNumber, out item);
-
-        public static void FlingPlayer(this ReferenceHub hub, float strength = 1f)
-        {
-            var handler = new DisruptorDamageHandler(new DisruptorShotEvent(new ItemIdentifier(), new Footprint(hub), DisruptorActionModule.FiringState.FiringRapid), hub.PlayerCameraReference.forward, -1f);
-            handler.StartVelocity = hub.PlayerCameraReference.forward.NormalizeIgnoreY() * 15f * strength;
-            handler.StartVelocity.y = 2f;
-            hub.playerStats.KillPlayer(handler);
-        }
-        
-        public static void RemoveItems(this Player plr, ItemType type)
-        {
-            var Items = plr.Items.ToList();
-            foreach(var item in Items)
-            {
-                if (item.Type != type)
-                {
-                    continue;
-                }
-
-                plr.RemoveItem(item);
-            }
-        }
-
-        public static void RemoveAmmo(this Player plr, ItemType ammo, ushort amount)
-        {
-            plr.SetAmmo(ammo, (ushort)(plr.GetAmmo(ammo) - ammo));
-        }
-
-        public static void RemoveAmmo(this ReferenceHub hub, ItemType ammo, ushort amount)
-        {
-            Inventory inv = hub.inventory;
-            inv.ServerSetAmmo(ammo, (ushort)(inv.GetCurAmmo(ammo) - ammo));
-        }
-
-        public static void RemoveAmmo(this Player plr, ItemType ammo, int amount) =>
-            plr.RemoveAmmo(ammo, (ushort)ammo);
-
-        public static void RemoveAmmo(this ReferenceHub hub, ItemType ammo, int amount) =>
-            hub.RemoveAmmo(ammo, (ushort)ammo);
-
-        public static void GiveLoadout(this ReferenceHub hub, RoleTypeId role, bool resetInventory = false)
-        {
-            if (!role.TryGetRoleTemplate<PlayerRoleBase>(out var prb))
-            {
-                return;
-            }
-
-            InventoryItemProvider.ServerGrantLoadout(hub, prb, resetInventory);
-        }
-
-        public static void GiveLoadout(this Player plr, RoleTypeId role, bool resetInventory = false) => GiveLoadout(plr.ReferenceHub, role, resetInventory);
     }
 }

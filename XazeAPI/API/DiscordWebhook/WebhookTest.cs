@@ -13,6 +13,7 @@ using PlayerRoles;
 using PlayerStatsSystem;
 using XazeAPI.API.DiscordWebhook.Data;
 using XazeAPI.API.DiscordWebhook.Data.Builders;
+using XazeAPI.API.Extensions;
 using XazeAPI.API.Helpers;
 using XazeAPI.Features;
 
@@ -68,7 +69,12 @@ namespace XazeAPI.API.DiscordWebhook
                     if (!response.IsSuccessStatusCode)
                     {
                         string errBody = await response.Content.ReadAsStringAsync();
-                        Logging.Error($"Discord Webhook Rejected [{response.StatusCode}]: {errBody}");
+                        string payloadSent = await content.ReadAsStringAsync();
+                        Logging.Error(
+                            $"Discord Webhook Rejected [{response.StatusCode}]: {errBody}\n",
+                            "Payload Sent: \n", 
+                            payloadSent
+                            );
                     }
                 }
                 catch (Exception ex)
@@ -90,19 +96,24 @@ namespace XazeAPI.API.DiscordWebhook
                     .WithAccentColor(colorGreen)
                     .WithTextDisplay($"### 📥 {player.DisplayName.RemoveRichTags()} joined the Server")
                     .WithSeparator(true, 1)
-                    .WithTextDisplay(
-                        $"Round In Progress: `{RoundSummary.RoundInProgress()}`\n" +
-                        $"Role: {player.Role}\n" +
-                        $"Group: {player.GroupName}\n" +
-                        $"User ID: `{player.UserId}`"
-                        ));
+                    .WithTextDisplay(sb =>
+                    {
+                        sb.AppendLine($"User ID: `{player.UserId}`");
+                        
+                        if (!player.GroupName.IsNullOrWhiteSpace())
+                            sb.AppendLine($"Group: `{player.GroupName}`");
+
+                        sb.AppendLine($"Round In Progress: `{RoundSummary.RoundInProgress()}`")
+                            .AppendLine($"Player Count: `{Player.Count}/{Server.MaxPlayers}`");
+                    }));
 
             SendMessage(builder.BuildHttpContent(), webhoolUrl);
         }
         
         public static void LeaveLog(string webhookUrl, Player player, string PluginName = "Plugin")
         {
-            if (player == null) return;
+            if (player is not { IsPlayer: true }) 
+                return;
 
             var builder = new ComponentBuilderV2()
                 .WithUsername($"{PluginName}-LeaveLog")
@@ -111,12 +122,19 @@ namespace XazeAPI.API.DiscordWebhook
                     .WithAccentColor(colorRed)
                     .WithTextDisplay($"### 📤 {player.DisplayName.RemoveRichTags()} left the Server")
                     .WithSeparator(divider: true, spacing: 1)
-                    .WithTextDisplay(
-                        $"Round In Progress: `{RoundSummary.RoundInProgress()}`\n" +
-                        $"Role: {player.Role}\n" +
-                        $"Group: {player.GroupName}\n" +
-                        $"User ID: `{player.UserId}`"
-                    ));
+                    .WithTextDisplay(sb =>
+                    {
+                        sb.AppendLine($"User ID: `{player.UserId}`");
+                        
+                        if (!player.GroupName.IsNullOrWhiteSpace())
+                            sb.AppendLine($"Group: `{player.GroupName}`");
+
+                        if (player.Role != RoleTypeId.Destroyed)
+                            sb.AppendLine("Role: " + player.RoleBase.RoleName);
+
+                        sb.AppendLine($"Round In Progress: `{RoundSummary.RoundInProgress()}`")
+                            .AppendLine($"Player Count: `{Player.Count}/{Server.MaxPlayers}`");
+                    }));
 
             SendMessage(builder.BuildHttpContent(), webhookUrl);
         }
@@ -145,59 +163,53 @@ namespace XazeAPI.API.DiscordWebhook
                 );
 
                 // Target Info Block
-                bool hasDisguise = false;
-                RoleTypeId disguise = RoleTypeId.None;
-                if (XazePlayer.TryGet(Target, out var targetPlr) && targetPlr.IsDisguised)
-                {
-                    hasDisguise = true;
-                    disguise = targetPlr.Disguise;
-                }
-                
                 container.WithSeparator();
-                string targetInfo =
-                    $"### Target Info\n" +
-                    $"**Username:** {Target.Nickname}\n" +
-                    $"**User ID:** `{Target.UserId}`\n" +
-                    $"**Group:** {Target.GroupName}\n" +
-                    $"**Role:** {Target.Role}\n" +
-                    $"**Custom Info:** {Target.CustomInfo}";
-
-                if (!isSuicide)
+                container.WithTextDisplay(sb =>
                 {
-                    targetInfo += $"\n**Was Cuffed:** {Target.IsDisarmed} {(Target.IsDisarmed ? $"(by {Target.DisarmedBy?.Nickname})" : "")}";
-                    targetInfo += $"\n**Is Armed:** {Target.Items.Any(x => x.Base is Firearm)}";
-                }
+                    sb.AppendLine("### Target Info")
+                        .AppendLine($"**Username:** {Target.Nickname}")
+                        .AppendLine($"**User ID:** {Target.UserId}");
 
-                if (hasDisguise)
-                {
-                    targetInfo += $"\n**Disguise:** {disguise}";
-                }
+                    if (!Target.GroupName.IsNullOrWhiteSpace())
+                        sb.AppendLine($"**Group:**: `{Target.GroupName}`");
 
-                container.WithTextDisplay(targetInfo);
+                    sb.AppendLine("**Role**: " + Target.Role);
+                    
+                    if (!Target.CustomInfo.IsNullOrWhiteSpace())
+                        sb.AppendLine("**Custom Info:** " + Target.CustomInfo);
+
+                    if (!isSuicide)
+                    {
+                        sb.AppendLine("**Was Cuffed:** " + Target.IsDisarmed + (Target.IsDisarmed? $" (by {Target.DisarmedBy?.Nickname})" : ""))
+                            .AppendLine("**Is Armed:** " + Target.Items.Any(i => i.Category is ItemCategory.Firearm or ItemCategory.SpecialWeapon));
+                    }
+
+                    if (XazePlayer.TryGet(Target, out var xPlr) && xPlr.IsDisguised)
+                        sb.AppendLine("**Disguise:** " + xPlr.Disguise);
+                });
 
                 // Attacker Info Block (If not suicide)
-                if (isSuicide || Attacker == null) 
+                if (isSuicide || Attacker == null)
                     return;
-                
-                bool hasDisguise2 = false;
-                RoleTypeId disguise2 = RoleTypeId.None;
-                if (XazePlayer.TryGet(Attacker, out var attPlr) && attPlr.IsDisguised)
-                {
-                    hasDisguise2 = true;
-                    disguise2 = attPlr.Disguise;
-                }
 
                 container.WithSeparator();
-                string attackerInfo =
-                    "## Attacker Info\n" +
-                    $"**Username:** {Attacker.Nickname}\n" +
-                    $"**User ID:** `{Attacker.UserId}`\n" +
-                    $"**Group:** `{Attacker.GroupName}`\n" +
-                    $"**Role:** {Attacker.Role}\n" +
-                    $"**Custom Info:** {Attacker.CustomInfo}" +
-                    $"{(hasDisguise2 ? $"\n**Disguise:** {disguise2}" : "")}";
+                container.WithTextDisplay(sb =>
+                {
+                    sb.AppendLine("### Attacker Info")
+                        .AppendLine($"**Username:** {Attacker.Nickname}")
+                        .AppendLine($"**User ID:** {Attacker.UserId}");
 
-                container.WithTextDisplay(attackerInfo);
+                    if (!Attacker.GroupName.IsNullOrWhiteSpace())
+                        sb.AppendLine($"**Group:**: `{Attacker.GroupName}`");
+
+                    sb.AppendLine("**Role**: " + Attacker.Role);
+                    
+                    if (!Attacker.CustomInfo.IsNullOrWhiteSpace())
+                        sb.AppendLine("**Custom Info:** " + Attacker.CustomInfo);
+
+                    if (XazePlayer.TryGet(Attacker, out var xPlr) && xPlr.IsDisguised)
+                        sb.AppendLine("**Disguise:** " + xPlr.Disguise);
+                });
             });
 
             SendMessage(builder.BuildHttpContent(), webhookUrl);

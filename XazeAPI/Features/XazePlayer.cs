@@ -180,11 +180,26 @@ public class XazePlayer
 
     public void AddEffect(Type effectType, EffectStack stack) => EffectStacks.AddStack(effectType, stack);
     public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => EffectStacks.AddStack<T>(stack);
-    public void AddEffect<T>(int intensity, float duration = 0.0f) where T : StatusEffectBase => EffectStacks.AddStack<T>(new EffectStack{ Intensity = intensity, Duration =  duration });
-    public void AddEffect<T>(Func<int> intensityCalc, float duration = 0.0f) where T : StatusEffectBase => EffectStacks.AddStack<T>(new EffectStack(intensityCalc) { Duration =  duration });
+
+    public EffectStack AddEffect<T>(string id, int intensity, float duration = 0.0f) where T : StatusEffectBase
+    {
+        var stack = new EffectStack(id) { Intensity = intensity, Duration = duration };
+        EffectStacks.AddStack<T>(stack.Clone());
+        return stack;
+    }
+
+    public EffectStack AddEffect<T>(string id, Func<int> intensityCalc, float duration = 0.0f)
+        where T : StatusEffectBase
+    {
+        var stack = new EffectStack(id, intensityCalc) { Duration = duration };
+        EffectStacks.AddStack<T>(stack.Clone());
+        return stack;
+    }
 
     public void RemoveEffect(Type effectType, EffectStack stack) => EffectStacks.RemoveStack(effectType, stack);
     public void RemoveEffect<T>(EffectStack stack) where T : StatusEffectBase => EffectStacks.RemoveStack<T>(stack);
+    public void RemoveEffect(Type effectType, string id) => EffectStacks.RemoveStack(effectType, EffectStacks.GetStack(effectType, id));
+    public void RemoveEffect<T>(string id) where T : StatusEffectBase => EffectStacks.RemoveStack<T>(EffectStacks.GetStack<T>(id));
     public void RemoveEffect(Type effectType) => EffectStacks.RemoveStacks(effectType);
     public void RemoveEffect<T>() where T : StatusEffectBase => EffectStacks.RemoveStacks<T>();
     public void RemoveEffects() => EffectStacks.RemoveStacks();

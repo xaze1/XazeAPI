@@ -20,6 +20,9 @@ public class SectionBuilder
 
     public SectionBuilder WithText(string content)
     {
+        if (content.IsNullOrWhiteSpace())
+            return this;
+        
         if (_textDisplays.Count >= 3)
             throw new InvalidOperationException("A Section cannot exceed 3 TextDisplay items.");
 
@@ -41,7 +44,11 @@ public class SectionBuilder
                 .AppendLine("**Stack Trace**:")
                 .AppendLine(ex.StackTrace);
         });
-        _textDisplays.Add(new TextDisplay(StringBuilderPool.Shared.ToStringReturn(sb)));
+        var content = StringBuilderPool.Shared.ToStringReturn(sb);
+        if (content.IsNullOrWhiteSpace())
+            return this;
+        
+        _textDisplays.Add(new TextDisplay(content));
         return this;
     }
 

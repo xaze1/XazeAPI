@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
+using XazeAPI.API.Extensions;
 
 namespace XazeAPI.API.DiscordWebhook.Data.Builders
 {
@@ -42,6 +43,9 @@ namespace XazeAPI.API.DiscordWebhook.Data.Builders
 
         public ComponentBuilderV2 WithTextDisplay(string content)
         {
+            if (content.IsNullOrWhiteSpace())
+                return this;
+            
             _components.Add(new TextDisplay(content));
             return this;
         }

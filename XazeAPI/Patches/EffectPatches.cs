@@ -5,6 +5,7 @@
 // //
 // // I <3 🦈s :3c
 
+using System;
 using CustomPlayerEffects;
 using HarmonyLib;
 using Mirror;
@@ -48,12 +49,12 @@ public static class EffectPatches
                 return false;
             }
 
-            manager.AddStack(effectType, new EffectStack
+            manager.AddStack(effectType, new EffectStack(Guid.NewGuid().ToString())
             {
                 Intensity = value,
                 Duration = __instance.Duration,
                 MaxIntensity = __instance is CokeBase<ICokeStack> cokeBase? (byte)cokeBase.StackMultipliers.Length : __instance.MaxIntensity,
-            });
+            }.Clone());
             __instance.Duration = 0;
             return false;
         }
