@@ -17,6 +17,7 @@ namespace XazeAPI.Features.AoEs;
 
 public abstract class AerialEffect
 {
+    public static List<AerialEffect> List { get; } = new();
     public List<Player> AffectedPlayers { get; } = new();
 
     public virtual float MaxDistance { get; set; } = 10;
@@ -104,6 +105,16 @@ public abstract class AerialEffect
         {
             OnExit(AffectedPlayers[i]);
         }
+
+        List.Remove(this);
+    }
+
+    internal static void DestroyAll()
+    {
+        for (int i = List.Count - 1; i >= 0; i--)
+        {
+            List[i].Destroy();
+        }
     }
     
     protected AerialEffect(Vector3 sourcePos)
@@ -112,5 +123,6 @@ public abstract class AerialEffect
         
         PlayerEvents.ChangedRole += OnRoleChanged;
         StaticUnityMethods.OnUpdate += Update;
+        List.Add(this);
     }
 }

@@ -85,13 +85,13 @@ namespace XazeAPI.API.Extensions
                 plr.ReferenceHub.VaporizePlayer(attacker?.ReferenceHub);
             }
             
-            public void AddEffect<T>(Func<int> intensityCalc, float duration = 0, string id = null) where T : StatusEffectBase => plr.AddEffect(typeof(T), intensityCalc, duration, id ?? Guid.NewGuid().ToString());
-            public void AddEffect<T>(byte intensity = 1, float duration = 0, string id = null) where T : StatusEffectBase => plr.AddEffect(typeof(T), intensity, duration, id ?? Guid.NewGuid().ToString());
+            public void AddEffect<T>(Func<int> intensityCalc, float duration = 0, string id = null) where T : StatusEffectBase => plr.AddEffect(typeof(T), intensityCalc, duration, id);
+            public void AddEffect<T>(byte intensity = 1, float duration = 0, string id = null) where T : StatusEffectBase => plr.AddEffect(typeof(T), intensity, duration, id);
             public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => plr.AddEffect(typeof(T), stack);
 
             public void AddEffect(Type effectType, byte intensity = 1, float duration = 0, string id = null) => plr.AddEffect(
                 effectType,
-                new EffectStack(id ?? Guid.NewGuid().ToString())
+                new EffectStack(id)
                 {
                     Intensity = intensity,
                     Duration = duration
@@ -99,7 +99,7 @@ namespace XazeAPI.API.Extensions
 
             public void AddEffect(Type effectType, Func<int> intensityCalc, float duration = 0, string id = null) => plr.AddEffect(
                 effectType, 
-                new EffectStack(id ?? Guid.NewGuid().ToString(), intensityCalc)
+                new EffectStack(intensityCalc, null, id)
                 {
                     Duration = duration
                 });
@@ -287,7 +287,7 @@ namespace XazeAPI.API.Extensions
 
             public void AddEffect(Type effectType, byte intensity = 1, float duration = 0, string id = null) => hub.AddEffect(
                 effectType,
-                new EffectStack(id ?? Guid.NewGuid().ToString())
+                new EffectStack(id)
                 {
                     Intensity = intensity,
                     Duration = duration
@@ -295,7 +295,7 @@ namespace XazeAPI.API.Extensions
 
             public void AddEffect(Type effectType, Func<int> intensityCalc, float duration = 0, string id = null) => hub.AddEffect(
                 effectType, 
-                new EffectStack(id ?? Guid.NewGuid().ToString(), intensityCalc)
+                new EffectStack(intensityCalc, null, id)
                 {
                     Duration = duration
                 });

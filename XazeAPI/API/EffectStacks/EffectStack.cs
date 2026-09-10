@@ -14,7 +14,7 @@ namespace XazeAPI.API.EffectStacks;
 
 public class EffectStack(string id)
 {
-    public string Id { get; } = id;
+    public string Id { get; } = id ?? Guid.NewGuid().ToString();
     public bool IsActive => Duration == 0f || TimeLeft > 0f;
     public bool IsPrefab { get; private init; }
 
@@ -79,12 +79,16 @@ public class EffectStack(string id)
         return stack;
     }
 
-    public EffectStack(string id, [CanBeNull] Func<bool> canBeRemovedCalc = null) : this(id)
+    public EffectStack() : this(Guid.NewGuid().ToString())
+    {
+    }
+
+    public EffectStack([CanBeNull] Func<bool> canBeRemovedCalc = null, string id = null) : this(id)
     {
         _canBeRemovedCalc = canBeRemovedCalc;
     }
 
-    public EffectStack(string id, Func<int> intensityCalc, [CanBeNull] Func<bool> canBeRemovedCalc = null) : this(id)
+    public EffectStack(Func<int> intensityCalc, [CanBeNull] Func<bool> canBeRemovedCalc = null, string id = null) : this(id)
     {
         _intensityCalc = intensityCalc;
         _canBeRemovedCalc = canBeRemovedCalc;

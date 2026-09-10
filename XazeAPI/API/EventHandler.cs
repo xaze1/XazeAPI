@@ -10,6 +10,7 @@ using LabApi.Events.CustomHandlers;
 using PlayerRoles;
 using XazeAPI.API.Stats;
 using XazeAPI.Features;
+using XazeAPI.Features.AoEs;
 
 namespace XazeAPI.API;
 
@@ -42,6 +43,8 @@ public class EventHandler : CustomEventsHandler
     {
         base.OnServerRoundRestarted();
         PlayerBaseStat.Clear();
+        FollowingAerial.DestroyAllGlobal();
+        AerialEffect.DestroyAll();
     }
 
     public override void OnPlayerLeft(PlayerLeftEventArgs ev)

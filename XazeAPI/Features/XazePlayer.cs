@@ -181,17 +181,17 @@ public class XazePlayer
     public void AddEffect(Type effectType, EffectStack stack) => EffectStacks.AddStack(effectType, stack);
     public void AddEffect<T>(EffectStack stack) where T : StatusEffectBase => EffectStacks.AddStack<T>(stack);
 
-    public EffectStack AddEffect<T>(string id, int intensity, float duration = 0.0f) where T : StatusEffectBase
+    public EffectStack AddEffect<T>(int intensity, float duration = 0.0f, string id = null) where T : StatusEffectBase
     {
         var stack = new EffectStack(id) { Intensity = intensity, Duration = duration };
         EffectStacks.AddStack<T>(stack.Clone());
         return stack;
     }
 
-    public EffectStack AddEffect<T>(string id, Func<int> intensityCalc, float duration = 0.0f)
+    public EffectStack AddEffect<T>(Func<int> intensityCalc, float duration = 0.0f, string id = null)
         where T : StatusEffectBase
     {
-        var stack = new EffectStack(id, intensityCalc) { Duration = duration };
+        var stack = new EffectStack(intensityCalc, null, id) { Duration = duration };
         EffectStacks.AddStack<T>(stack.Clone());
         return stack;
     }
