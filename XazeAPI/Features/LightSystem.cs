@@ -5,22 +5,21 @@
 // 
 // I <3 🦈s :3c
 
+using System.Collections.Generic;
+using System.Linq;
+using CustomPlayerEffects;
 using HarmonyLib;
+using LabApi.Features.Wrappers;
 using Mirror;
+using PlayerRoles;
 using PlayerRoles.FirstPersonControl;
-using XazeAPI.API.Helpers;
+using PlayerRoles.PlayableScps.Scp106;
+using UnityEngine;
 using XazeAPI.API.Interfaces;
+using XazeAPI.Features.Helpers;
 
-namespace XazeAPI.API
+namespace XazeAPI.Features
 {
-    using CustomPlayerEffects;
-    using LabApi.Features.Wrappers;
-    using PlayerRoles;
-    using PlayerRoles.PlayableScps.Scp106;
-    using System.Collections.Generic;
-    using System.Linq;
-    using UnityEngine;
-
     public class LightSystem : MonoBehaviour
     {
         public static LightSystem Singleton;

@@ -13,7 +13,7 @@ using InventorySystem.Items.Firearms.Modules;
 using LabApi.Features.Wrappers;
 using XazeAPI.API.Extensions;
 
-namespace XazeAPI.API.Helpers
+namespace XazeAPI.Features.Helpers
 {
     public static class FirearmHandler
     {

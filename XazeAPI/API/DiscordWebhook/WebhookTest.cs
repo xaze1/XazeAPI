@@ -7,6 +7,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using GameCore;
 using InventorySystem.Items.Firearms;
 using LabApi.Features.Wrappers;
 using PlayerRoles;
@@ -14,8 +15,8 @@ using PlayerStatsSystem;
 using XazeAPI.API.DiscordWebhook.Data;
 using XazeAPI.API.DiscordWebhook.Data.Builders;
 using XazeAPI.API.Extensions;
-using XazeAPI.API.Helpers;
 using XazeAPI.Features;
+using XazeAPI.Features.Helpers;
 
 namespace XazeAPI.API.DiscordWebhook
 {
@@ -36,6 +37,7 @@ namespace XazeAPI.API.DiscordWebhook
         public static string DiscordLog { get; private set; }
         public static string DiscordPath { get; private set; }
         public static bool isInitialized { get; private set; }
+        private static string ServerName { get; set; }
 
         public const int colorBlue = 0x1F61E6;
         public const int colorGreen = 0x80E61F;
@@ -47,7 +49,17 @@ namespace XazeAPI.API.DiscordWebhook
         
         public static void Initialize()
         {
+            if (isInitialized)
+                return;
+            
             isInitialized = true;
+            ServerName = ConfigFile.ServerConfig.GetString("server_name", "My Server Name");
+            ConfigFile.OnConfigReloaded += OnReloaded;
+        }
+
+        private static void OnReloaded()
+        {
+            ServerName = ConfigFile.ServerConfig.GetString("server_name", "My Server Name");
         }
 
         public static void SendMessage(StringContent content, string webhookUrl)
@@ -94,7 +106,7 @@ namespace XazeAPI.API.DiscordWebhook
                 .WithAvatarUrl(AvatarUrl)
                 .WithContainer(container => container
                     .WithAccentColor(colorGreen)
-                    .WithTextDisplay($"### 📥 {player.DisplayName.RemoveRichTags()} joined the Server")
+                    .WithTextDisplay($"### 📥 {player.DisplayName.RemoveRichTags()} joined " + ServerName.RemoveRichTags())
                     .WithSeparator(true, 1)
                     .WithTextDisplay(sb =>
                     {
@@ -120,7 +132,7 @@ namespace XazeAPI.API.DiscordWebhook
                 .WithAvatarUrl(AvatarUrl)
                 .WithContainer(container => container
                     .WithAccentColor(colorRed)
-                    .WithTextDisplay($"### 📤 {player.DisplayName.RemoveRichTags()} left the Server")
+                    .WithTextDisplay($"### 📤 {player.DisplayName.RemoveRichTags()} left " + ServerName.RemoveRichTags())
                     .WithSeparator(divider: true, spacing: 1)
                     .WithTextDisplay(sb =>
                     {

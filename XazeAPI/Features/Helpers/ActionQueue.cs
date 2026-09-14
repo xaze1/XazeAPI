@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using MEC;
 
-namespace XazeAPI.API.Helpers;
+namespace XazeAPI.Features.Helpers;
 
 public static class ActionQueue
 {

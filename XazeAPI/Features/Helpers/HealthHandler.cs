@@ -8,7 +8,7 @@
 using InventorySystem.Items.Usables;
 using UnityEngine;
 
-namespace XazeAPI.API.Helpers
+namespace XazeAPI.Features.Helpers
 {
     public static class HealthHelper
     {

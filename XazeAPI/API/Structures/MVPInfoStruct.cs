@@ -11,8 +11,8 @@ using System.Drawing;
 using System.Text;
 using RueI.Utils;
 using XazeAPI.API.Enums;
-using XazeAPI.API.Helpers;
 using XazeAPI.Features;
+using XazeAPI.Features.Helpers;
 
 namespace XazeAPI.API.Structures
 {

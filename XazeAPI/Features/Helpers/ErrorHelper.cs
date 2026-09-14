@@ -5,14 +5,14 @@
 // 
 // I <3 🦈s :3c
 
-using Mirror;
 using System;
 using System.Linq;
 using System.Text;
+using Mirror;
 using RueI.Utils;
 using XazeAPI.API.Stats;
 
-namespace XazeAPI.API.Helpers
+namespace XazeAPI.Features.Helpers
 {
     public class ErrorHelper
     {

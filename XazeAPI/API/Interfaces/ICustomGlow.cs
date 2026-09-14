@@ -5,6 +5,8 @@
 // 
 // I <3 🦈s :3c
 
+using XazeAPI.Features;
+
 namespace XazeAPI.API.Interfaces
 {
     public interface ICustomGlow

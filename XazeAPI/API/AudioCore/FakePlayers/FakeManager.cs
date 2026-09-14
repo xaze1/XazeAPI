@@ -19,6 +19,7 @@ using NetworkManagerUtils.Dummies;
 using LabApi.Features.Wrappers;
 using PlayerRoles.Spectating;
 using XazeAPI.API.Extensions;
+using XazeAPI.Features;
 
 namespace XazeAPI.API.AudioCore.FakePlayers
 {

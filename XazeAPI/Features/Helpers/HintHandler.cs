@@ -5,15 +5,15 @@
 // 
 // I <3 🦈s :3c
 
-using LabApi.Features.Wrappers;
-using MEC;
 using System.Collections.Generic;
 using System.Text;
 using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Features.Wrappers;
+using MEC;
 using RueI.API;
 using RueI.API.Elements;
 
-namespace XazeAPI.API.Helpers
+namespace XazeAPI.Features.Helpers
 {
     public static class HintHelper
     {

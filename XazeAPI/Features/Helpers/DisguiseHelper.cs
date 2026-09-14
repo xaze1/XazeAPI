@@ -6,7 +6,6 @@
 // I <3 🦈s :3c
 
 using System;
-using PlayerRoles;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -15,12 +14,13 @@ using LabApi.Features.Extensions;
 using LabApi.Features.Wrappers;
 using Mirror;
 using NorthwoodLib.Pools;
+using PlayerRoles;
 using RueI.API;
 using RueI.API.Elements;
 using RueI.Utils;
 using XazeAPI.API.Structures;
 
-namespace XazeAPI.API.Helpers
+namespace XazeAPI.Features.Helpers
 {
     public static class DisguiseHelper
     {

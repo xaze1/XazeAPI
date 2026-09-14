@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace XazeAPI.API;
+namespace XazeAPI.Features;
 
 public class StopTimer(TimeSpan duration, Action callback = null)
 {

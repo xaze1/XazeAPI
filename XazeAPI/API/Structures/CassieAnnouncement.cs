@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using Cassie;
 using Utils.Networking;
-using XazeAPI.API.Helpers;
+using XazeAPI.Features.Helpers;
 
 namespace XazeAPI.API.Structures
 {

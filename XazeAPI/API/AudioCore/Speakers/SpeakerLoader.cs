@@ -15,9 +15,10 @@ using SecretLabNAudio.Core.Extensions;
 using SecretLabNAudio.Core.Pools;
 using SecretLabNAudio.Core.SendEngines;
 using UnityEngine;
-using XazeAPI.API.Helpers;
 using XazeAPI.API.Stats;
 using XazeAPI.API.Structures;
+using XazeAPI.Features;
+using XazeAPI.Features.Helpers;
 
 namespace XazeAPI.API.AudioCore.Speakers;
 

@@ -10,7 +10,7 @@ using LabApi.Features.Wrappers;
 using MEC;
 using UnityEngine;
 
-namespace XazeAPI.API.Helpers
+namespace XazeAPI.Features.Helpers
 {
     public static class TextToyHelper
     {

@@ -5,19 +5,17 @@
 // 
 // I <3 🦈s :3c
 
-using System;
+using System.Collections.Generic;
+using System.Linq;
 using CentralAuth;
 using LabApi.Features.Permissions;
 using LabApi.Features.Wrappers;
 using Mirror;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using XazeAPI.API.Stats;
 using static ServerRoles;
 
-namespace XazeAPI.API.Helpers
+namespace XazeAPI.Features.Helpers
 {
     public static class ServerRolesHelper
     {

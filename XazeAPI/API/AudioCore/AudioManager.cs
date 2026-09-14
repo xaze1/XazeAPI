@@ -8,6 +8,7 @@
 using System.IO;
 using System.Reflection;
 using LabApi.Loader.Features.Paths;
+using XazeAPI.Features;
 
 namespace XazeAPI.API.AudioCore;
 

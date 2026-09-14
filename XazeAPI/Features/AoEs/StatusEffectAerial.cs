@@ -26,24 +26,23 @@ public class StatusEffectAerial<T> : AerialEffect where T : StatusEffectBase
     }
     
     private readonly EffectStack _stack;
-    private readonly Type StatusEffect;
 
     public override bool OnEnter(Player player)
     {
         base.OnEnter(player);
-        if (player.TryGetEffectStack(StatusEffect, _guid, out var stack))
+        if (player.TryGetEffectStack<T>(_guid, out var stack))
         {
             stack.Duration = 0;
             return true;
         }
-        player.AddEffect(StatusEffect, _stack.Clone());
+        player.AddEffect<T>(_stack.Clone());
         return true;
     }
 
     public override bool OnExit(Player player)
     {
         base.OnExit(player);
-        var stack = player.GetEffectStack(StatusEffect, _guid);
+        var stack = player.GetEffectStack<T>(_guid);
         stack?.Duration = Duration;
         return true;
     }
@@ -51,7 +50,6 @@ public class StatusEffectAerial<T> : AerialEffect where T : StatusEffectBase
     public StatusEffectAerial(Vector3 sourcePos, int intensity, float duration, byte maxIntensity = 255) : base(sourcePos)
     {
         _guid = Guid.NewGuid().ToString();
-        StatusEffect = typeof(T);
         _stack = new EffectStack(_guid) { Intensity = intensity, MaxIntensity = maxIntensity };
         Duration = duration;
     }

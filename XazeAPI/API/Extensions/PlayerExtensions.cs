@@ -229,6 +229,23 @@ namespace XazeAPI.API.Extensions
 
         extension(ReferenceHub hub)
         {
+            public FollowingAerial<T> CreateAura<T>(T aerialEffect) where T : AerialEffect
+            {
+                return FollowingAerial<T>.Create(Player.Get(hub), aerialEffect);
+            }
+            
+            public FollowingAerial<DelegateAerial> CreateAura(Action<Player> action)
+            {
+                var plr = Player.Get(hub);
+                return FollowingAerial<DelegateAerial>.Create(plr, new DelegateAerial(action, plr.Position));
+            }
+            
+            public FollowingAerial<StatusEffectAerial<T>> CreateAura<T>(int intensity, float duration) where T : StatusEffectBase
+            {
+                var plr = Player.Get(hub);
+                return FollowingAerial<StatusEffectAerial<T>>.Create(plr, new StatusEffectAerial<T>(plr.Position, intensity, duration));
+            }
+            
             public void SendConsoleMessage(string message, string color) => hub.gameConsoleTransmission.SendToClient(message, color);
             
             public HealthStat GetHealthStat()

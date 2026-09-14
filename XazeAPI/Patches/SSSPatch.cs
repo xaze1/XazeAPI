@@ -2,7 +2,8 @@
 using System.Linq;
 using HarmonyLib;
 using UserSettings.ServerSpecific;
-using XazeAPI.API;
+using XazeAPI.Features;
+using XazeAPI.Features.SSS;
 
 namespace XazeAPI.Patches
 {
@@ -22,8 +23,8 @@ namespace XazeAPI.Patches
             {
                 if (CustomSSSSync.DefinedSettings.Count > 0)
                 {
-                    foreach (var sssBase in from settings in CustomSSSSync.DefinedSettings.Values 
-                             from sssBase in settings 
+                    foreach (var sssBase in from playerSetting in CustomSSSSync.DefinedSettings.Values 
+                             from sssBase in playerSetting.GetSettings() 
                              where sssBase != null
                              where sssBase.SettingId == __instance.SettingId &&
                                    (sssBase.GetType() == __instance.GetType())
@@ -39,17 +40,19 @@ namespace XazeAPI.Patches
                     }
                 }
 
-                foreach (var sssBase in CustomSSSSync.GlobalDefinedSettings)
+                foreach (var component in CustomSSSSync.GlobalDefinedSettings)
                 {
-                    if (sssBase.SettingId == __instance.SettingId || 
-                        sssBase.GetType() == __instance.GetType()) continue;
+                    foreach (var sss in component.GetSettings())
+                    {
+                        if (sss.SettingId == __instance.SettingId || 
+                            sss.GetType() == __instance.GetType()) continue;
                     
-                    __result = sssBase;
-                    return false;
+                        __result = sss;
+                        return false;
+                    }
                 }
 
-                foreach (var serverSpecificSettingBase in ServerSpecificSettingsSync
-                             .DefinedSettings)
+                foreach (var serverSpecificSettingBase in ServerSpecificSettingsSync.DefinedSettings)
                 {
                     if (serverSpecificSettingBase.SettingId != __instance.SettingId ||
                         serverSpecificSettingBase.GetType() != __instance.GetType()) continue;

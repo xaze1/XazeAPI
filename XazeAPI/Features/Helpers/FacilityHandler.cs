@@ -16,7 +16,7 @@ using PlayerRoles.FirstPersonControl;
 using UnityEngine;
 using ElevatorDoor = Interactables.Interobjects.ElevatorDoor;
 
-namespace XazeAPI.API.Helpers
+namespace XazeAPI.Features.Helpers
 {
     public static class FacilityHandler
     {

@@ -11,7 +11,7 @@ using Mirror;
 using UnityEngine;
 using PrimitiveFlags = AdminToys.PrimitiveFlags;
 
-namespace XazeAPI.API.Helpers
+namespace XazeAPI.Features.Helpers
 {
     public static class PrimitiveHelper
     {

@@ -12,7 +12,7 @@ using Interactables.Interobjects.DoorUtils;
 using InventorySystem;
 using InventorySystem.Items.Keycards;
 
-namespace XazeAPI.API.Helpers
+namespace XazeAPI.Features.Helpers
 {
     public static class CustomKeycardHandler
     {

@@ -37,7 +37,6 @@ using PlayerRoles.PlayableScps.Scp3114;
 using PlayerRoles.PlayableScps.Scp939;
 using PlayerRoles.Spectating;
 using PlayerStatsSystem;
-using RueI.API;
 using RueI.Utils;
 using UnityEngine;
 using XazeAPI.API.AudioCore.FakePlayers;
@@ -50,7 +49,7 @@ using Scp018Projectile = InventorySystem.Items.ThrowableProjectiles.Scp018Projec
 using Scp207 = CustomPlayerEffects.Scp207;
 using ThrowableItem = InventorySystem.Items.ThrowableProjectiles.ThrowableItem;
 
-namespace XazeAPI.API.Helpers
+namespace XazeAPI.Features.Helpers
 {
     public static class MainHelper
     {

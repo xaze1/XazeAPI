@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using LabApi.Features.Wrappers;
 using PlayerRoles;
+using XazeAPI.Features;
 
 namespace XazeAPI.API.Stats
 {

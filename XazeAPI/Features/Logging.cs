@@ -5,12 +5,12 @@
 // 
 // I <3 🦈s :3c
 
-namespace XazeAPI.API
-{
-    using LabApi.Features.Console;
-    using System;
-    using System.Reflection;
+using System;
+using System.Reflection;
+using LabApi.Features.Console;
 
+namespace XazeAPI.Features
+{
     public static class Logging
     {
         public static void Info(params object[] args)
