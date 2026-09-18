@@ -28,9 +28,11 @@ public abstract class LightConfigBase
         set
         {
             field = value;
+            if (!UpdateLight)
+                return;
             Light?.Intensity = value;
         }
-    } = 0;
+    } = 5f;
 
     public float Range
     {
@@ -38,11 +40,14 @@ public abstract class LightConfigBase
         set
         {
             field = value;
+            if (!UpdateLight)
+                return;
             Light?.Range = value;
         }
-    } = 0;
+    } = 10f;
     
     public LightSourceToy Light { get; protected set; }
+    public bool UpdateLight { get; set; } = true;
     
     [CanBeNull] internal Transform _parent;
     internal bool IsSet { get; private set; }
@@ -77,8 +82,8 @@ public abstract class LightConfigBase
         
         Light = LightSourceToy.Create(position, rotation, null, false);
         Light.Color = Color.clear;
-        Intensity = 5f;
-        Range = 10f;
+        Light.Intensity = Intensity;
+        Light.Range = Range;
         
         OnCreated();
         Light.Spawn();
@@ -91,8 +96,8 @@ public abstract class LightConfigBase
         
         Light = LightSourceToy.Create(parent, false);
         Light.Color = Color.clear;
-        Intensity = 5f;
-        Range = 10f;
+        Light.Intensity = Intensity;
+        Light.Range = Range;
         
         _parent = parent;
         OnCreated();

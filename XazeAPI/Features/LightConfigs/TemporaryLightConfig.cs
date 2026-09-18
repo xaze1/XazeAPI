@@ -28,6 +28,7 @@ public class TemporaryLightConfig : SolidLightConfig
     public bool FadeIn { get; set; } = false;
     
     private float _aliveTime = 0;
+    private float _initialIntensity;
     
     public override void Update(float deltaTime)
     {
@@ -37,7 +38,7 @@ public class TemporaryLightConfig : SolidLightConfig
         {
             _aliveTime += deltaTime;
             var normalizedFade = Mathf.Clamp01(_aliveTime / FadeTime);
-            Light.Intensity = Intensity * normalizedFade;
+            Intensity = _initialIntensity * normalizedFade;
             return;
         }
         
@@ -49,7 +50,7 @@ public class TemporaryLightConfig : SolidLightConfig
         if (DimLight)
         {
             var normalizedTime = Mathf.Clamp01(TimeLeft / Duration);
-            Light.Intensity = Intensity * normalizedTime;
+            Intensity = _initialIntensity * normalizedTime;
         }
         
         if (TimeLeft > 0)
@@ -61,7 +62,8 @@ public class TemporaryLightConfig : SolidLightConfig
     protected override void OnCreated()
     {
         base.OnCreated();
+        _initialIntensity = Intensity;
         if (FadeIn)
-            Light.Intensity = 0;
+            Intensity = 0;
     }
 }

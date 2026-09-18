@@ -6,11 +6,15 @@
 // // I <3 🦈s :3c
 
 using System.Collections.Generic;
+using CustomPlayerEffects;
 using JetBrains.Annotations;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
 using PlayerRoles.FirstPersonControl;
+using PlayerRoles.PlayableScps.Scp096;
+using PlayerRoles.PlayableScps.Scp106;
+using PlayerRoles.PlayableScps.Scp939;
 using PlayerRoles.Visibility;
 using UnityEngine;
 using XazeAPI.API.Extensions;
@@ -41,14 +45,28 @@ public class PlayerLight<T> : PlayerLight where T : LightConfigBase
 
         foreach (var plr in Player.ReadyList)
         {
-            float intensityForPlayer = LightConfig.Intensity;
-
-            if (plr.IsAlive)
+            bool ownerVisible = true;
+            if (plr.IsAlive && plr != Target)
             {
-                if (plr.RoleBase is ICustomVisibilityRole role && !role.VisibilityController.ValidateVisibility(Target.ReferenceHub))
-                    intensityForPlayer = 0;
+                if (!Target.HasEffect<Invisible>())
+                {
+                    if (plr.RoleBase is Scp096Role shyGuy)
+                        ownerVisible = shyGuy.VisibilityController.ValidateVisibility(Target.ReferenceHub);
+                    else if (HitboxIdentity.IsEnemy(Target.ReferenceHub, plr.ReferenceHub))
+                    {
+                        ownerVisible = plr.RoleBase switch
+                        {
+                            Scp106Role larry when Target.RoleBase is IFpcRole fpcRole && larry.SubroutineModule.TryGetSubroutine(out Scp106StalkVisibilityController stalkVis) => stalkVis.GetVisibilityForPlayer(Target.ReferenceHub, fpcRole),
+                            Scp939Role dog => dog.VisibilityController.ValidateVisibility(Target.ReferenceHub),
+                            _ => ownerVisible
+                        };
+                    }
+                }
+                else
+                    ownerVisible = false;
             }
             
+            float intensityForPlayer = ownerVisible? LightConfig.Intensity : 0;
             if (CurrentIntensity.TryGetValue(plr, out var lastIntensity) && 
                 Mathf.Approximately(lastIntensity, intensityForPlayer))
                 continue;
@@ -96,7 +114,8 @@ public class PlayerLight<T> : PlayerLight where T : LightConfigBase
         PlayerEvents.Left += OnLeft;
         if (_destroyOnDeath)
             PlayerEvents.Death += OnDeath;
-        
+
+        lightConfig.UpdateLight = false;
         _list.Add(this);
         Register(this);
     }
