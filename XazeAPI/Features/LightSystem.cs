@@ -5,342 +5,119 @@
 // 
 // I <3 🦈s :3c
 
-using System.Collections.Generic;
-using System.Linq;
-using CustomPlayerEffects;
-using HarmonyLib;
+using System;
+using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
-using Mirror;
-using PlayerRoles;
-using PlayerRoles.FirstPersonControl;
-using PlayerRoles.PlayableScps.Scp106;
 using UnityEngine;
+using XazeAPI.API.Enums;
 using XazeAPI.API.Interfaces;
-using XazeAPI.Features.Helpers;
+using XazeAPI.Features.LightConfigs;
 
 namespace XazeAPI.Features
 {
-    public class LightSystem : MonoBehaviour
+    public static class LightSystem
     {
-        public static LightSystem Singleton;
-        public static readonly HashSet<LightConfig> Lights = new();
-        public static float TransitionSpeed = 10f;
-        
-        void Awake()
+        internal static void Init()
         {
-            if (Singleton != null)
+            AdminToys.AdminToyBase.OnRemoved += LightConfigBase.OnLightRemoved;
+            StaticUnityMethods.OnUpdate += Update;
+            ServerEvents.RoundRestarted += () =>
             {
-                Destroy(Singleton);
-            }
-
-            Singleton = this;
-            //ItemPickupBase.OnPickupAdded += HandlePickupCreation;
-            AdminToys.AdminToyBase.OnRemoved += OnLightRemoved;
-
-            Logging.Debug(APILoader.Debug, "[LightSystem] Spawned!");
-        }
-
-        void OnDestroy()
-        {
-            if (Singleton == this)
-            {
-                Singleton = null;
-            }
-
-            //ItemPickupBase.OnPickupAdded -= HandlePickupCreation;
-            AdminToys.AdminToyBase.OnRemoved -= OnLightRemoved;
-
-            foreach (var config in Lights)
-            {
-                config.LightToy.Destroy();
-            }
-            Lights.Clear();
-        }
-
-        void Update()
-        {
-            foreach(var config in Lights)
-            {
-                if (config.LightToy.GameObject == null || config.TargetHub != null && config.TargetHub.gameObject == null)
+                for (int i = LightConfigBase.Lights.Count - 1; i >= 0; i--)
                 {
+                    var config = LightConfigBase.Lights[i];
+                    config.Destroy();
+                }
+            };
+        }
+
+        internal static void Update()
+        {
+            for (int i = LightConfigBase.Lights.Count - 1; i >= 0; i--)
+            {
+                var config = LightConfigBase.Lights[i];
+                if (!config.IsSet)
                     continue;
-                }
-
-                switch (config.Status)
-                {
-                    case LightConfig.LightState.SolidColor:
-                        break;
-
-                    case LightConfig.LightState.Rainbow:
-                        config.hue += TransitionSpeed / 10000f;
-                        if (config.hue >= 1)
-                        {
-                            config.hue = 0;
-                        }
-                        config.CurrentColor = Color.HSVToRGB(config.hue, 1, 1);
-                        break;
-
-                    case LightConfig.LightState.Gradient:
-                        config.hue += Time.deltaTime * (TransitionSpeed / 30f);
-
-                        if (config.hue >= 1f)
-                        {
-                            config.hue = 0f;
-                            config.index = (config.index + 1) % config.ColorArray.Length;
-                        }
-
-                        int next = (config.index + 1) % config.ColorArray.Length;
-
-                        config.CurrentColor = Color.Lerp(
-                            config.ColorArray[config.index],
-                            config.ColorArray[next],
-                            config.hue
-                        );
-                        break;
-                }
-
-                float lightRange = config.Range;
-                if (config.TargetHub != null && 
-                    (config.TargetHub.playerEffectsController.GetEffect<Invisible>().IsEnabled || config.TargetHub.roleManager.CurrentRole is IFpcRole fpc && fpc.FpcModule.Motor.IsInvisible) || 
-                    config.TargetRole is Scp106Role larry && larry.SubroutineModule.TryGetSubroutine(out Scp106StalkAbility stalk) && stalk.StalkActive)
-                {
-                    lightRange = 0;
-                }
-
-                config.LightToy.Range = lightRange;
-            }
-
-            if (!Lights.Any(x => x.TargetHub != null && x.TargetHub.gameObject == null))
-            {
-                return;
-            }
-
-            Lights.ToList().DoIf(x => x.TargetHub != null && x.TargetHub.gameObject == null, l => l.Destroy());
-        }
-
-        public static void AddLight(Transform origin, float intensity = 5, float range = 10)
-        {
-            _ = new LightConfig(origin, intensity, range);
-        }
-
-        public static void AddLight(ReferenceHub Target, Color color, float intensity = 5, float range = 10, LightConfig.LightState state = LightConfig.LightState.SolidColor)
-        {
-            _ = new LightConfig(Target, color, intensity, range, state);
-        }
-
-        public static void AddLight(Player Target, Color color, float intensity = 5, float range = 10, LightConfig.LightState state = LightConfig.LightState.SolidColor) =>
-            AddLight(Target.ReferenceHub, color, intensity, range, state);
-
-        public static void RemoveLight(ReferenceHub Owner)
-        {
-            var lights = Lights.ToList();
-            foreach(var config in lights)
-            {
-                if (config.TargetHub != Owner)
-                {
+                
+                config.Update(Time.deltaTime);
+                
+                if (config._parent == null || config._parent.gameObject != null)
                     continue;
-                }
-
-                config.LightToy.Destroy();
-                Lights.Remove(config);
+                config.Destroy();
             }
         }
 
-        public static void RemoveLight(Player Owner)
+        public static T AddLight<T>(Vector3 position, float intensity = 5, float range = 10) where T : LightConfigBase
         {
-            var lights = Lights.ToList();
-            foreach(var config in lights)
-            {
-                if (config.TargetHub != Owner.ReferenceHub)
-                {
-                    continue;
-                }
-
-                config.LightToy.Destroy();
-                Lights.Remove(config);
-            }
+            var config = Activator.CreateInstance<T>();
+            config.Intensity = intensity;
+            config.Range = range;
+            
+            config.Create(position, Quaternion.identity);
+            return config;
         }
 
-        private void OnLightRemoved(AdminToys.AdminToyBase obj)
+        public static T AddLight<T>(Transform parent, float intensity = 5, float range = 10) where T : LightConfigBase
         {
-            if (obj is not AdminToys.LightSourceToy light)
-            {
-                return;
-            }
-
-            Lights.RemoveWhere(x => x.LightToy.GameObject == light.gameObject);
+            var config = Activator.CreateInstance<T>();
+            config.Intensity = intensity;
+            config.Range = range;
+            
+            config.Create(parent);
+            return config;
         }
 
-        public class LightConfig
+        public static LightConfigBase AddLight(Transform parent, ICustomGlow glow)
         {
-            public enum LightState
+            LightConfigBase config = glow.State switch
             {
-                SolidColor,
-                Gradient,
-                Rainbow
-            }
+                LightState.Gradient => new GradientLightConfig { LightColors = glow.Colors },
+                LightState.Rainbow => new RainbowLightConfig(),
+                _ => new SolidLightConfig { LightColor = glow.Colors[0] }
+            };
 
-            private LightSourceToy _light;
-            private Color[] _colors;
-            private LightState _state;
-            public float hue = 0;
-            public float Range = 0;
-            public int index = 0;
-
-            public ReferenceHub TargetHub;
-            public PlayerRoleBase TargetRole => TargetHub?.roleManager?.CurrentRole;
-
-            public Color[] ColorArray => _colors;
-            public LightState Status => _state;
-            public LightSourceToy LightToy => _light;
-            public Color CurrentColor
-            {
-                get
-                {
-                    if (LightToy == null)
-                    {
-                        return Color.white;
-                    }
-
-                    return LightToy.Color;
-                }
-                set
-                {
-                    if (LightToy == null)
-                    {
-                        return;
-                    }
-
-                    LightToy.Color = value;
-                }
-            }
-
-            public void Destroy()
-            {
-                Lights.Remove(this);
-                NetworkServer.Destroy(_light.GameObject);
-            }
-
-            public LightConfig(Transform origin, Color color, float intensity = 5, float range = 10, LightState state = LightState.SolidColor)
-            {
-                _colors = [color];
-                _state = state;
-                _light = MainHelper.spawnLight(origin, color, intensity, range);
-                Range = range;
-
-                Lights.Add(this);
-            }
-
-            public LightConfig(ReferenceHub Target, Color color, float intensity = 5, float range = 10, LightState state = LightState.SolidColor)
-            {
-                _colors = [color];
-                _state = state;
-                _light = MainHelper.spawnLight(Target.gameObject.transform, color, intensity, range);
-                TargetHub = Target;
-                Range = range;
-
-                Lights.Add(this);
-            }
-
-            public LightConfig(Vector3 origin, Color color, float intensity = 5, float range = 10)
-            {
-                _colors = [color];
-                _state = LightState.SolidColor;
-                _light = MainHelper.spawnLight(origin, color, intensity, range);
-                Range = range;
-
-                Lights.Add(this);
-            }
-
-            public LightConfig(Transform origin, Color[] colors, float intensity = 5, float range = 10)
-            {
-                if (colors.Length <= 0)
-                {
-                    throw new System.ArgumentNullException("colors cannot be Empty");
-                }
-
-                _colors = colors;
-                _state = LightState.Gradient;
-                _light = MainHelper.spawnLight(origin, _colors[0], intensity, range);
-                Range = range;
-
-                Lights.Add(this);
-            }
-
-            public LightConfig(Vector3 origin, Color[] colors, float intensity = 5, float range = 10)
-            {
-                if (colors.Length <= 0)
-                {
-                    throw new System.ArgumentNullException("colors cannot be Empty");
-                }
-
-                _colors = colors;
-                _state = LightState.Gradient;
-                _light = MainHelper.spawnLight(origin, _colors[0], intensity, range);
-                Range = range;
-
-                Lights.Add(this);
-            }
-
-            public LightConfig(Transform origin, float intensity = 5, float range = 10)
-            {
-                _colors = [];
-                _state = LightState.Rainbow;
-                _light = MainHelper.spawnLight(origin, Color.HSVToRGB(0, 1, 1), intensity, range);
-                Range = range;
-
-                Lights.Add(this);
-            }
-
-            public LightConfig(Vector3 origin, float intensity = 5, float range = 10)
-            {
-                _colors = [];
-                _state = LightState.Rainbow;
-                _light = MainHelper.spawnLight(origin, Color.HSVToRGB(0, 1, 1), intensity, range);
-                Range = range;
-
-                Lights.Add(this);
-            }
-
-            public LightConfig(LightSourceToy light)
-            {
-                _colors = [];
-                _state = LightState.SolidColor;
-                _light = light;
-                Range = _light.Range;
-
-                Lights.Add(this);
-            }
-
-            public LightConfig(Transform origin, ICustomGlow customGlow)
-            {
-                if (customGlow.Colors.Length <= 0 && customGlow.State != LightState.Rainbow)
-                {
-                    throw new System.ArgumentNullException("colors cannot be Empty");
-                }
-
-                _colors = customGlow.Colors;
-                _state = customGlow.State;
-                _light = MainHelper.spawnLight(origin, _state == LightState.Rainbow? Color.HSVToRGB(0, 1, 1) : _colors[0], customGlow.Intensity, customGlow.Range);
-                Range = customGlow.Range;
-
-                Lights.Add(this);
-            }
-
-            public LightConfig(Vector3 origin, ICustomGlow customGlow)
-            {
-                if (customGlow.Colors.Length <= 0)
-                {
-                    throw new System.ArgumentNullException("colors cannot be Empty");
-                }
-
-                _colors = customGlow.Colors;
-                _state = customGlow.State;
-                _light = MainHelper.spawnLight(origin, _state == LightState.Rainbow? Color.HSVToRGB(0, 1, 1) : _colors[0], customGlow.Intensity, customGlow.Range);
-                Range = customGlow.Range;
-
-                Lights.Add(this);
-            }
+            config.Intensity = glow.Intensity;
+            config.Range = glow.Range;
+            config.Create(parent);
+            return config;
         }
+
+        public static RainbowLightConfig AddLight(Transform origin, float intensity = 5, float range = 10)
+        {
+            var config = new RainbowLightConfig
+            {
+                Intensity = intensity,
+                Range = range
+            };
+            config.Create(origin);
+            return config;
+        }
+
+        public static SolidLightConfig AddLight(ReferenceHub Target, Color color, float intensity = 5, float range = 10)
+        {
+            var config = new SolidLightConfig
+            {
+                Intensity = intensity,
+                Range = range,
+                LightColor = color
+            };
+            config.Create(Target.transform);
+            return config;
+        }
+
+        public static SolidLightConfig AddLight(Transform parent, Color color, float intensity = 5, float range = 10)
+        {
+            var config = new SolidLightConfig
+            {
+                Intensity = intensity,
+                Range = range,
+                LightColor = color
+            };
+            config.Create(parent);
+            return config;
+        }
+
+        public static SolidLightConfig AddLight(Player Target, Color color, float intensity = 5, float range = 10) =>
+            AddLight(Target.ReferenceHub, color, intensity, range);
     }
 }

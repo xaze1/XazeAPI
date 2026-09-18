@@ -5,18 +5,24 @@
 // //
 // // I <3 🦈s :3c
 
+using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
 using NorthwoodLib.Pools;
 using PlayerRoles.FirstPersonControl;
 using UnityEngine;
+using XazeAPI.API.Extensions;
 
 namespace XazeAPI.Features.AoEs;
 
 public abstract class AerialEffect
 {
+    [CanBeNull] public static event Action<AerialEffect> OnAnyDestroyed;
+    [CanBeNull] public event Action OnThisDestroyed;
+
     public static List<AerialEffect> List { get; } = new();
     public List<Player> AffectedPlayers { get; } = new();
 
@@ -98,6 +104,9 @@ public abstract class AerialEffect
 
     public virtual void Destroy()
     {
+        if (!IsActive)
+            return;
+        
         IsActive = false;
         PlayerEvents.ChangedRole -= OnRoleChanged;
         StaticUnityMethods.OnUpdate -= Update;
@@ -107,6 +116,8 @@ public abstract class AerialEffect
         }
 
         List.Remove(this);
+        OnAnyDestroyed?.InvokeSafely(this);
+        OnThisDestroyed?.InvokeSafely();
     }
 
     internal static void DestroyAll()

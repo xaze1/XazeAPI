@@ -32,6 +32,14 @@ namespace XazeAPI.Features.SSS
                 DefinedSettings[plr.UserId] = settings;
                 settings.SyncSettings();
             };
+            PlayerEvents.Left += args =>
+            {
+                var plr = args.Player;
+                if (!plr.IsPlayer)
+                    return;
+
+                DefinedSettings.Remove(plr.UserId);
+            };
             CustomNetworkManager.OnClientReady += delegate
             {
                 NetworkServer.ReplaceHandler<SSSClientResponse>(ServerProcessClientResponseMsg);

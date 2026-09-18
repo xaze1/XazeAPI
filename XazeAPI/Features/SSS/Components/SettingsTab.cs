@@ -22,9 +22,11 @@ public class SettingsTab(int priority = 5) : SettingComponent(priority)
                 field = (uint)Tabs.Count - 1;
                 return;
             }
+
             field = value;
         }
-    }
+    } = 0;
+    
     public List<SettingsList> Tabs { get; } = new();
     
     public override ServerSpecificSettingBase[] GetSettings()

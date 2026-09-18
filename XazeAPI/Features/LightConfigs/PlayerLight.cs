@@ -10,24 +10,52 @@ using JetBrains.Annotations;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
+using PlayerRoles.FirstPersonControl;
+using PlayerRoles.Visibility;
+using UnityEngine;
 using XazeAPI.API.Extensions;
+using XazeAPI.Features.Helpers;
 
-namespace XazeAPI.Features.AoEs;
+namespace XazeAPI.Features.LightConfigs;
 
-public class FollowingAerial<T> : FollowingAerial where T : AerialEffect
+public class PlayerLight<T> : PlayerLight where T : LightConfigBase
 {
-    private static readonly List<FollowingAerial<T>> _list = new();
-    public static IReadOnlyList<FollowingAerial<T>> InternalList => _list.AsReadOnly();
+    private static readonly List<PlayerLight<T>> _list = new();
+    public static IReadOnlyList<PlayerLight<T>> InternalList => _list.AsReadOnly();
 
-    public new T AoE => (T)base.AoE;
+    public new T LightConfig => (T)base.LightConfig;
     private readonly bool _destroyOnDeath;
+    private readonly Dictionary<Player, float> CurrentIntensity = new();
 
     private void Update()
     {
         if (Target is not { IsAlive: true })
+        {
+            if (Light.Intensity == 0)
+                return;
+            
+            Light.Intensity = 0;
+            CurrentIntensity.Clear();
             return;
-        
-        AoE.SourcePosition = Target.Position;
+        }
+
+        foreach (var plr in Player.ReadyList)
+        {
+            float intensityForPlayer = LightConfig.Intensity;
+
+            if (plr.IsAlive)
+            {
+                if (plr.RoleBase is ICustomVisibilityRole role && !role.VisibilityController.ValidateVisibility(Target.ReferenceHub))
+                    intensityForPlayer = 0;
+            }
+            
+            if (CurrentIntensity.TryGetValue(plr, out var lastIntensity) && 
+                Mathf.Approximately(lastIntensity, intensityForPlayer))
+                continue;
+            
+            plr.SendFakeSyncVar(Light.Base, 32UL, intensityForPlayer);
+            CurrentIntensity[plr] = intensityForPlayer;
+        }
     }
 
     private void OnLeft(PlayerLeftEventArgs args)
@@ -53,37 +81,37 @@ public class FollowingAerial<T> : FollowingAerial where T : AerialEffect
         if (_destroyOnDeath)
             PlayerEvents.Death -= OnDeath;
         
-        AoE.OnThisDestroyed -= Destroy;
-        AoE.Destroy();
+        LightConfig.OnThisDestroyed -= Destroy;
+        LightConfig.Destroy();
         _list.Remove(this);
         Unregister(this);
     }
     
-    private FollowingAerial(Player target, T aerialEffect, bool destroyOnDeath = true) : base(target, aerialEffect)
+    private PlayerLight(Player target, T lightConfig, bool destroyOnDeath = false) : base(target, lightConfig)
     {
         _destroyOnDeath = destroyOnDeath;
-        
+
+        lightConfig.OnThisDestroyed += Destroy;
         StaticUnityMethods.OnUpdate += Update;
         PlayerEvents.Left += OnLeft;
         if (_destroyOnDeath)
             PlayerEvents.Death += OnDeath;
         
-        AoE.OnThisDestroyed += Destroy;
         _list.Add(this);
         Register(this);
     }
     
     [CanBeNull]
-    public static FollowingAerial<T> Create(Player Owner, T aerialEffect)
+    public static PlayerLight<T> Create(Player Owner, T lightConfig)
     {
         if (Owner.GameObject == null || Owner.IsHost)
             return null;
         
-        return new FollowingAerial<T>(Owner, aerialEffect);
+        return new PlayerLight<T>(Owner, lightConfig);
     }
     
     [CanBeNull]
-    public static FollowingAerial<T> Create(ReferenceHub hub, T aerialEffect)
+    public static PlayerLight<T> Create(ReferenceHub hub, T lightConfig)
     {
         var Owner = Player.Get(hub);
         if (Owner == null)
@@ -92,7 +120,7 @@ public class FollowingAerial<T> : FollowingAerial where T : AerialEffect
         if (Owner.GameObject == null || Owner.IsHost)
             return null;
         
-        return new FollowingAerial<T>(Owner, aerialEffect);
+        return new PlayerLight<T>(Owner, lightConfig);
     }
 
     public static bool Destroy(Player Owner)
@@ -124,14 +152,14 @@ public class FollowingAerial<T> : FollowingAerial where T : AerialEffect
     }
 }
 
-public abstract class FollowingAerial(Player target, AerialEffect aerialEffect)
+public abstract class PlayerLight(Player target, LightConfigBase lightConfig)
 {
-    private static readonly List<FollowingAerial> _allInstances = new();
-    public static IReadOnlyList<FollowingAerial> AllInstances => _allInstances.AsReadOnly();
+    private static readonly List<PlayerLight> _allInstances = new();
+    public static IReadOnlyList<PlayerLight> List => _allInstances.AsReadOnly();
 
-    protected static void Register(FollowingAerial instance) => _allInstances.Add(instance);
-    protected static void Unregister(FollowingAerial instance) => _allInstances.Remove(instance);
-
+    protected static void Register(PlayerLight instance) => _allInstances.Add(instance);
+    protected static void Unregister(PlayerLight instance) => _allInstances.Remove(instance);
+    
     public static void DestroyAllGlobal()
     {
         for (int i = _allInstances.Count - 1; i >= 0; i--)
@@ -139,22 +167,10 @@ public abstract class FollowingAerial(Player target, AerialEffect aerialEffect)
             _allInstances[i].Destroy();
         }
     }
-
-    public static bool DestroyAny(Player player)
-    {
-        bool removedAny = false;
-        for (int i = _allInstances.Count - 1; i >= 0; i--)
-        {
-            if (_allInstances[i].Target != player) 
-                continue;
-            _allInstances[i].Destroy();
-            removedAny = true;
-        }
-        return removedAny;
-    }
-
+    
     public Player Target { get; protected set; } = target;
-    public AerialEffect AoE { get; protected set; } = aerialEffect;
+    public LightConfigBase LightConfig { get; protected set; } = lightConfig;
+    public LightSourceToy Light => LightConfig.Light;
     
     public abstract void Destroy();
 }

@@ -5,13 +5,16 @@
 // 
 // I <3 🦈s :3c
 
+using CommandSystem;
 using JetBrains.Annotations;
+using LabApi.Features.Permissions;
 using Utils;
 using XazeAPI.API.EffectStacks;
 using XazeAPI.API.Events;
 using XazeAPI.API.Events.Handler;
 using XazeAPI.API.Stats;
 using XazeAPI.Features.AoEs;
+using XazeAPI.Features.LightConfigs;
 
 namespace XazeAPI.API.Extensions
 {
@@ -53,6 +56,11 @@ namespace XazeAPI.API.Extensions
             public FollowingAerial<StatusEffectAerial<T>> CreateAura<T>(int intensity, float duration) where T : StatusEffectBase
             {
                 return FollowingAerial<StatusEffectAerial<T>>.Create(plr, new StatusEffectAerial<T>(plr.Position, intensity, duration));
+            }
+
+            public PlayerLight<T> CreateLight<T>(T lightConfig) where T : LightConfigBase
+            {
+                return PlayerLight<T>.Create(plr, lightConfig);
             }
             
             public HealthStat GetHealthStat() => plr.ReferenceHub.GetHealthStat();
@@ -244,6 +252,11 @@ namespace XazeAPI.API.Extensions
             {
                 var plr = Player.Get(hub);
                 return FollowingAerial<StatusEffectAerial<T>>.Create(plr, new StatusEffectAerial<T>(plr.Position, intensity, duration));
+            }
+
+            public PlayerLight<T> CreateLight<T>(T lightConfig) where T : LightConfigBase
+            {
+                return PlayerLight<T>.Create(hub, lightConfig);
             }
             
             public void SendConsoleMessage(string message, string color) => hub.gameConsoleTransmission.SendToClient(message, color);
@@ -539,6 +552,21 @@ namespace XazeAPI.API.Extensions
                 PlayerEvents.OnDeath(new PlayerDeathEventArgs(stats._hub, attacker, handler, role, pos, vel, rot));
 
                 return ragdoll;
+            }
+        }
+
+        extension(ICommandSender sender)
+        {
+            public bool HasPermission(string perm, out string response)
+            {
+                response = "You don't have permissions to execute this command.\nRequired permission: " + perm;
+                return sender.HasPermission(perm);
+            }
+            
+            public bool HasPermissions(out string response, params string[] perms)
+            {
+                response = "You don't have permissions to execute this command.\nRequired permission: " + string.Join(", ", perms);
+                return sender.HasPermissions(perms);
             }
         }
     }

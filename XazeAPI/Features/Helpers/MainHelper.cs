@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
+using AdminToys;
 using CustomPlayerEffects;
 using Footprinting;
 using Interactables.Interobjects.DoorUtils;
@@ -43,6 +44,7 @@ using XazeAPI.API.AudioCore.FakePlayers;
 using XazeAPI.API.Enums;
 using XazeAPI.API.Extensions;
 using AntiScp207 = CustomPlayerEffects.AntiScp207;
+using LightSourceToy = LabApi.Features.Wrappers.LightSourceToy;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 using Scp018Projectile = InventorySystem.Items.ThrowableProjectiles.Scp018Projectile;
@@ -53,6 +55,22 @@ namespace XazeAPI.Features.Helpers
 {
     public static class MainHelper
     {
+        private static readonly Dictionary<Type, ulong> SubWriteClassToMinULong = new()
+        {
+            [typeof(AdminToyBase)] = 32,
+        };
+
+        private static ulong GetSubclassMinDirtyBit(Type type)
+        {
+            foreach (KeyValuePair<Type, ulong> kvp in SubWriteClassToMinULong)
+            {
+                if (type.IsSubclassOf(kvp.Key))
+                    return kvp.Value;
+            }
+
+            return ulong.MaxValue;
+        }
+        
         public const int RecontainmentDamageTypeID = 27;
         public const int WarheadDamageTypeID = 2;
         public const int MicroHidTypeID = 18;
@@ -1545,136 +1563,73 @@ namespace XazeAPI.Features.Helpers
         {
             Announcer.Message(message, translation, isNoisy);
         }
-
-        public static void SendFakeSyncVar<T>(this Player target, NetworkIdentity behaviorOwner, Type targetType, string propertyName, T value)
+        
+        internal static void SendFakeCore(this Player target, NetworkBehaviour networkBehaviour, Action<NetworkWriterPooled> writeSyncData, Action<NetworkWriterPooled> writeSyncVar)
         {
-            if (target.GameObject == null)
+            if (target.Connection == null)
                 return;
 
-            NetworkWriterPooled writer = NetworkWriterPool.Get();
-            NetworkWriterPooled writer2 = NetworkWriterPool.Get();
-            MakeCustomSyncWriter(behaviorOwner, targetType, null, CustomSyncVarGenerator, writer, writer2);
+            using NetworkWriterPooled writer = NetworkWriterPool.Get();
+        
+            // gets the dirty mask based on the changed behavior's index
+            ulong mask = 0;
+            mask |= 1UL << networkBehaviour.netIdentity.NetworkBehaviours.IndexOf(networkBehaviour);
+            Compression.CompressVarUInt(writer, mask);
+
+            // placeholder length
+            int headerPosition = writer.Position;
+            writer.WriteByte(0);
+            int contentPosition = writer.Position;
+
+            // Serialize Object Sync Data.
+            if (writeSyncData != null)
+                writeSyncData.Invoke(writer);
+            else
+                writer.WriteULong(0);
+
+            // Write Object Sync Vars
+            if (writeSyncVar != null)
+                writeSyncVar.Invoke(writer);
+            else
+                writer.WriteULong(0);
+
+            // end position safety write
+            int endPosition = writer.Position;
+            writer.Position = headerPosition;
+            int size = endPosition - contentPosition;
+            byte safety = (byte)(size & 0xFF);
+            writer.WriteByte(safety);
+            writer.Position = endPosition;
+
             target.Connection.Send(new EntityStateMessage
             {
-                netId = behaviorOwner.netId,
+                netId = networkBehaviour.netId,
                 payload = writer.ToArraySegment(),
             });
-
-            NetworkWriterPool.Return(writer);
-            NetworkWriterPool.Return(writer2);
-            void CustomSyncVarGenerator(NetworkWriter targetWriter)
-            {
-                targetWriter.WriteULong(SyncVarDirtyBits[$"{targetType.Name}.{propertyName}"]);
-                WriterExtensions[typeof(T)]?.Invoke(null, new object[] { targetWriter, value });
-            }
         }
 
-        private static void MakeCustomSyncWriter(NetworkIdentity behaviorOwner, Type targetType, Action<NetworkWriter> customSyncObject, Action<NetworkWriter> customSyncVar, NetworkWriter owner, NetworkWriter observer)
+        public static void SendFakeSyncVar<T>(this Player target, NetworkBehaviour networkBehaviour, ulong dirtyBit, T value)
         {
-            ulong value = 0;
-            NetworkBehaviour behaviour = null;
-
-            // Get NetworkBehaviors index (behaviorDirty use index)
-            for (int i = 0; i < behaviorOwner.NetworkBehaviours.Length; i++)
-            {
-                if (behaviorOwner.NetworkBehaviours[i].GetType() != targetType) continue;
-                behaviour = behaviorOwner.NetworkBehaviours[i];
-                value = 1UL << (i & 31);
-                break;
-            }
-
-            // Write target NetworkBehavior's dirty
-            Compression.CompressVarUInt(owner, value);
-
-            // Write init position
-            int position = owner.Position;
-            owner.WriteByte(0);
-            int position2 = owner.Position;
-
-            // Write custom sync data
-            if (customSyncObject is not null)
-                customSyncObject(owner);
-            else
-                behaviour?.SerializeObjectsDelta(owner);
-
-            // Write custom syncvar
-            customSyncVar?.Invoke(owner);
-
-            // Write syncdata position data
-            int position3 = owner.Position;
-            owner.Position = position;
-            owner.WriteByte((byte)(position3 - position2 & 255));
-            owner.Position = position3;
-
-            // Copy owner to observer
-            if (behaviour != null && behaviour.syncMode != SyncMode.Observers)
-                observer.WriteBytes(owner.ToArraySegment().Array, position, owner.Position - position);
-        }
-
-        private static readonly Dictionary<string, ulong> SyncVarDirtyBitsValue = new();
-        private static readonly ReadOnlyDictionary<string, ulong> ReadOnlySyncVarDirtyBitsValue = new(SyncVarDirtyBitsValue);
-
-        private static readonly Dictionary<Type, MethodInfo> WriterExtensionsValue = new();
-        private static readonly ReadOnlyDictionary<Type, MethodInfo> ReadOnlyWriterExtensionsValue = new(WriterExtensionsValue);
-        public static ReadOnlyDictionary<string, ulong> SyncVarDirtyBits
-        {
-            get
-            {
-                if (SyncVarDirtyBitsValue.Count == 0)
+            Type networkType = networkBehaviour.GetType();
+            
+            target.SendFakeCore(networkBehaviour,
+                null, (writer) =>
                 {
-                    foreach (PropertyInfo property in typeof(ServerConsole).Assembly.GetTypes()
-                        .SelectMany(x => x.GetProperties())
-                        .Where(m => m.Name.StartsWith("Network")))
+                    writer.WriteULong(dirtyBit);
+                    ulong minDirtyBit = GetSubclassMinDirtyBit(networkType);
+                    bool isWritten = false;
+
+                    if (dirtyBit >= minDirtyBit)
                     {
-                        MethodInfo setMethod = property.GetSetMethod();
-
-                        if (setMethod is null)
-                            continue;
-
-                        MethodBody methodBody = setMethod.GetMethodBody();
-
-                        if (methodBody is null)
-                            continue;
-
-                        byte[] bytecodes = methodBody.GetILAsByteArray();
-
-                        if (!SyncVarDirtyBitsValue.ContainsKey($"{property.ReflectedType?.Name}.{property.Name}"))
-                            SyncVarDirtyBitsValue.Add($"{property.ReflectedType?.Name}.{property.Name}", bytecodes[bytecodes.LastIndexOf((byte)OpCodes.Ldc_I8.Value) + 1]);
+                        writer.WriteULong(dirtyBit);
+                        isWritten = true;
                     }
-                }
-
-                return ReadOnlySyncVarDirtyBitsValue;
-            }
-        }
-
-        public static ReadOnlyDictionary<Type, MethodInfo> WriterExtensions
-        {
-            get
-            {
-                if (WriterExtensionsValue.Count != 0)
-                {
-                    return ReadOnlyWriterExtensionsValue;
-                }
-                
-                foreach (MethodInfo method in typeof(NetworkWriterExtensions).GetMethods().Where(x => !x.IsGenericMethod && x.GetCustomAttribute(typeof(ObsoleteAttribute)) == null && (x.GetParameters()?.Length == 2)))
-                    WriterExtensionsValue.Add(method.GetParameters().First(x => x.ParameterType != typeof(NetworkWriter)).ParameterType, method);
-
-                Type fuckNorthwood = Assembly.GetAssembly(typeof(RoleTypeId)).GetType("Mirror.GeneratedNetworkCode");
-                if (fuckNorthwood is null)
-                {
-                    return ReadOnlyWriterExtensionsValue;
-                }
-                foreach (MethodInfo method in fuckNorthwood.GetMethods().Where(x => !x.IsGenericMethod && x.GetParameters().Length == 2 && x.ReturnType == typeof(void)))
-                    WriterExtensionsValue.Add(method.GetParameters().First(x => x.ParameterType != typeof(NetworkWriter)).ParameterType, method);
-
-                foreach (Type serializer in typeof(ServerConsole).Assembly.GetTypes().Where(x => x.Name.EndsWith("Serializer")))
-                {
-                    foreach (MethodInfo method in serializer.GetMethods().Where(x => (x.ReturnType == typeof(void)) && x.Name.StartsWith("Write")))
-                        WriterExtensionsValue.Add(method.GetParameters().First(x => x.ParameterType != typeof(NetworkWriter)).ParameterType, method);
-                }
-
-                return ReadOnlyWriterExtensionsValue;
-            }
+                    
+                    writer.Write(value);
+                    
+                    if (!isWritten)
+                        writer.WriteULong(dirtyBit);
+                });
         }
 
         public static void SendBroadcast(this ReferenceHub hub, string broadcast, ushort duration, Broadcast.BroadcastFlags flags = Broadcast.BroadcastFlags.Normal, bool clearPrevious = false)
@@ -2019,6 +1974,21 @@ namespace XazeAPI.Features.Helpers
                 return text;
         
             return Regex.Replace(text, "<.*?>", string.Empty);
+        }
+
+        public static bool TryGetPlayer(string id, out Player plr)
+        {
+            if (Player.TryGet(id, out plr)) 
+                return true;
+            if (!Player.TryGetPlayersByName(id, out var targets))
+            {
+                if (int.TryParse(id, out int playerId))
+                    Player.TryGet(playerId, out plr);
+            }
+            else
+                plr = targets.FirstOrDefault();
+
+            return plr != null;
         }
     }
 }

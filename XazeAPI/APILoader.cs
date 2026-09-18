@@ -35,7 +35,7 @@ public class APILoader : Plugin
     public override string Name => "XazeAPI";
     public override string Description => "API Library by xaze_";
     public override string Author => "xaze_";
-    public override Version Version => new(1, 2, 5, 1);
+    public override Version Version => new(1, 2, 5, 2);
     public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
     public override LoadPriority Priority =>  LoadPriority.Highest;
 
@@ -54,6 +54,7 @@ public class APILoader : Plugin
         Singleton = this;
         Logging.ServerLog(ConsoleColor.DarkMagenta, "Thank you for using XazeAPI! Version", Version);
         CustomSSSSync.Init();
+        LightSystem.Init();
         XazeHandlerManager.InitializeEvents();
         CustomHandlersManager.RegisterEventsHandler(new EventHandler());
         

@@ -5,13 +5,13 @@
 // 
 // I <3 🦈s :3c
 
-using XazeAPI.Features;
+using XazeAPI.API.Enums;
 
 namespace XazeAPI.API.Interfaces
 {
     public interface ICustomGlow
     {
-        public abstract LightSystem.LightConfig.LightState State { get; }
+        public abstract LightState State { get; }
         public abstract UnityEngine.Color[] Colors { get; }
         public abstract float Intensity { get; }
         public abstract float Range { get; }
