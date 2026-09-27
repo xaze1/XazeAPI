@@ -16,34 +16,33 @@ namespace XazeAPI.API.Extensions
     {
         public static TSource RandomItem<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate = null)
         {
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
 
-            if (source.Count() == 0)
+            var sourceList = source.ToList();
+            switch (sourceList.Count)
             {
+                case 0:
+                    return default;
+                case 1:
+                    return sourceList.FirstOrDefault();
+            }
+
+            if (predicate == null) 
+                return sourceList.ElementAt(Random.Range(0, sourceList.Count));
+            
+            var predicateOutcome = sourceList.Where(predicate).ToList();
+            if (predicateOutcome.Count == 0)
                 return default;
-            }
-
-            if (source.Count() == 1)
-            {
-                return source.FirstOrDefault();
-            }
-
-            if (predicate != null)
-            {
-                return source.Where(predicate).ElementAt(Random.Range(0, source.Where(predicate).Count()));
-            }
-
-            return source.ElementAt(Random.Range(0, source.Count()));
+                
+            return predicateOutcome.ElementAt(Random.Range(0, predicateOutcome.Count));
         }
 
         public static void ForEach<TSource>(this IEnumerable<TSource> source, Action<TSource> action)
         {
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
 
             foreach (var element in source)
-            {
                 action(element);
-            }
         }
 
         public static bool TryGetFirst<T>(
@@ -53,11 +52,10 @@ namespace XazeAPI.API.Extensions
         {
             foreach (var item in source)
             {
-                if (predicate(item))
-                {
-                    result = item;
-                    return true;
-                }
+                if (!predicate(item)) 
+                    continue;
+                result = item;
+                return true;
             }
 
             result = default!;

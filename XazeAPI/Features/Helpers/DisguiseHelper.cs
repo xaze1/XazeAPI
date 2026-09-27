@@ -22,6 +22,8 @@ using XazeAPI.API.Structures;
 
 namespace XazeAPI.Features.Helpers
 {
+    extern alias SystemNonSL;
+
     public static class DisguiseHelper
     {
         public static readonly Dictionary<ReferenceHub, DisguisedPlayer> DisguisedPlayers = new();
@@ -122,7 +124,7 @@ namespace XazeAPI.Features.Helpers
             
             if (disguise.Disguise == RoleTypeId.None || !disguise.Disguise.IsAlive())
             {
-                throw new InvalidEnumArgumentException("Disguise can't be dead/None");
+                throw new SystemNonSL::System.ComponentModel.InvalidEnumArgumentException("Disguise can't be dead/None");
             }
             
             var roleBase = disguise.Disguise.GetRoleBase();

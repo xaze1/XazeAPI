@@ -63,7 +63,7 @@ public static class RAEffectPatches
                 if (hub == null || !hub.playerEffectsController.TryGetEffect(effectName, out var effect)) 
                     continue;
 
-                var effectType = effect.GetType();
+                Type effectType = effect.GetType();
                 if (EffectStackManager.BlacklistedEffects.Contains(effectType))
                     effect.ServerSetState(intensity, duration);
                 else if (intensity > 0)

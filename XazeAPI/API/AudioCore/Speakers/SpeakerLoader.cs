@@ -107,10 +107,10 @@ public class SpeakerLoader : MonoBehaviour
 
     private void Awake()
     {
-        Base = Player.TryGet(gameObject, out _) ? AudioPlayerPool.Rent(SpeakerSettings.Default, gameObject.transform) : AudioPlayerPool.Rent(SpeakerSettings.GloballyAudible with
-        {
-            IsSpatial = false
-        });
+        var settings = Player.TryGet(gameObject, out _)
+            ? SpeakerSettings.Default
+            : SpeakerSettings.GloballyAudible with { IsSpatial = false };
+        Base = AudioPlayerPool.Rent(settings, gameObject.transform);
         Base.AlwaysRead = false;
         SendEngine = new();
         Base.WithSendEngine(SendEngine);

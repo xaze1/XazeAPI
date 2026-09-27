@@ -14,6 +14,7 @@ using MapGeneration;
 using MEC;
 using PlayerRoles.FirstPersonControl;
 using UnityEngine;
+using XazeAPI.API.Extensions;
 using ElevatorDoor = Interactables.Interobjects.ElevatorDoor;
 
 namespace XazeAPI.Features.Helpers
@@ -33,17 +34,18 @@ namespace XazeAPI.Features.Helpers
             }
         }
 
-        public static void ChangeFacilityLight(Color color)
+        public static void ChangeFacilityLight(Color color, Func<RoomLightController, bool> IsEligible = null)
         {
             foreach (var controller in RoomLightController.Instances)
             {
-                if (controller.OverrideColor == color) continue;
+                if (controller.OverrideColor == color || IsEligible != null && !IsEligible.InvokeSafely(controller)) 
+                    continue;
 
                 controller.NetworkOverrideColor = color;
             }
         }
 
-        public static void ChangeFacilityLight(float r, float b, float g) => ChangeFacilityLight(new Color(r / 255f, b / 255f, g / 255f));
+        public static void ChangeFacilityLight(float r, float b, float g, Func<RoomLightController, bool> IsEligible = null) => ChangeFacilityLight(new Color(r / 255f, b / 255f, g / 255f), IsEligible);
 
         public static Room GetApiRoom(this RoomIdentifier room)
         {

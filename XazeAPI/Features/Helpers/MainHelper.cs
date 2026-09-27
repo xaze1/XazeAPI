@@ -53,6 +53,8 @@ using ThrowableItem = InventorySystem.Items.ThrowableProjectiles.ThrowableItem;
 
 namespace XazeAPI.Features.Helpers
 {
+    extern alias SystemNonSL;
+
     public static class MainHelper
     {
         private static readonly Dictionary<Type, ulong> SubWriteClassToMinULong = new()
@@ -1973,7 +1975,7 @@ namespace XazeAPI.Features.Helpers
             if (string.IsNullOrWhiteSpace(text))
                 return text;
         
-            return Regex.Replace(text, "<.*?>", string.Empty);
+            return SystemNonSL::System.Text.RegularExpressions.Regex.Replace(text, "<.*?>", string.Empty);
         }
 
         public static bool TryGetPlayer(string id, out Player plr)

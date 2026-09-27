@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using HarmonyLib;
 using UserSettings.ServerSpecific;
 using XazeAPI.Features;
@@ -23,20 +22,16 @@ namespace XazeAPI.Patches
             {
                 if (CustomSSSSync.DefinedSettings.Count > 0)
                 {
-                    foreach (var sssBase in from playerSetting in CustomSSSSync.DefinedSettings.Values 
-                             from sssBase in playerSetting.GetSettings() 
-                             where sssBase != null
-                             where sssBase.SettingId == __instance.SettingId &&
-                                   (sssBase.GetType() == __instance.GetType())
-                             select sssBase)
+                    foreach (var playerSetting in CustomSSSSync.DefinedSettings.Values)
                     {
-                        if (sssBase == null)
+                        foreach (var setting in playerSetting.GetSettings(true))
                         {
-                            break;
+                            if (setting == null || setting.SettingId != __instance.SettingId || setting.GetType() != __instance.GetType())
+                                continue;
+                            
+                            __result = setting;
+                            return false;
                         }
-                        
-                        __result = sssBase;
-                        return false;
                     }
                 }
 
@@ -55,7 +50,8 @@ namespace XazeAPI.Patches
                 foreach (var serverSpecificSettingBase in ServerSpecificSettingsSync.DefinedSettings)
                 {
                     if (serverSpecificSettingBase.SettingId != __instance.SettingId ||
-                        serverSpecificSettingBase.GetType() != __instance.GetType()) continue;
+                        serverSpecificSettingBase.GetType() != __instance.GetType()) 
+                        continue;
                     
                     __result = serverSpecificSettingBase;
                     return false;

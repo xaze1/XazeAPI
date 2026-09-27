@@ -29,7 +29,22 @@ public abstract class AerialEffect
     public virtual float MaxDistance { get; set; } = 10;
     public virtual float MaxHeightDistance { get; set; } = 10;
     public virtual Vector3 SourceOffset { get; protected set; } = Vector3.zero;
-    public virtual bool IsActive { get; set; } = true;
+
+    public virtual bool IsActive
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+            if (field && !value)
+            {
+                for (int i = AffectedPlayers.Count - 1; i >= 0; i--)
+                    OnExit(AffectedPlayers[i]);
+            }
+            field = value;
+        }
+    } = true;
 
     public virtual Vector3 SourcePosition
     {
@@ -92,6 +107,8 @@ public abstract class AerialEffect
 
     protected virtual void Update()
     {
+        if (!IsActive)
+            return;
         UpdateTargets();
     }
 
@@ -135,5 +152,10 @@ public abstract class AerialEffect
         PlayerEvents.ChangedRole += OnRoleChanged;
         StaticUnityMethods.OnUpdate += Update;
         List.Add(this);
+    }
+    
+    public static bool IsInArea(Vector3 sourcePos, Vector3 targetPos, float maxDistance, float maxHeightDistance = 10f)
+    {
+        return Mathf.Abs(targetPos.y - sourcePos.y) <= maxHeightDistance && (sourcePos - targetPos).SqrMagnitudeIgnoreY() <= maxDistance * maxDistance;
     }
 }

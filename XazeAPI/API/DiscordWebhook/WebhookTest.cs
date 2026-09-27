@@ -20,6 +20,7 @@ using XazeAPI.Features.Helpers;
 
 namespace XazeAPI.API.DiscordWebhook
 {
+    extern alias SystemNonSL;
     using System.Net.Http;
     using System;
     
@@ -70,7 +71,7 @@ namespace XazeAPI.API.DiscordWebhook
             if (!webhookUrl.Contains("with_components=true"))
                 webhookUrl += webhookUrl.Contains("?") ? "&with_components=true" : "?with_components=true";
 
-            if (!Uri.TryCreate(webhookUrl, UriKind.Absolute, out var uri))
+            if (!SystemNonSL::System.Uri.TryCreate(webhookUrl, SystemNonSL::System.UriKind.Absolute, out var uri))
                 return;
 
             _ = Task.Run(async () =>

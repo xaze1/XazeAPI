@@ -55,11 +55,47 @@ public static class DelegateExtensions
         }
     }
     
+    public static void InvokeSafely<A1, A2>(this Action<A1, A2> action, A1 arg, A2 arg2, Action<Exception> onException = null)
+    {
+        if (action == null)
+            return;
+
+        foreach (var del in action.GetInvocationList())
+        {
+            if (del is not Action<A1, A2> handler) 
+                continue;
+            try
+            {
+                handler(arg, arg2);
+            }
+            catch (Exception ex)
+            {
+                if (onException == null)
+                    Logging.Error(ex);
+                else
+                    onException.Invoke(ex);
+            }
+        }
+    }
+    
     public static TResult InvokeSafely<TResult>(this Func<TResult> func, Action<Exception> onException = null)
     {
         try
         {
             return func.Invoke();
+        }
+        catch (Exception ex)
+        {
+            onException?.Invoke(ex);
+            return default;
+        }
+    }
+    
+    public static TResult InvokeSafely<A1, TResult>(this Func<A1, TResult> func, A1 arg, Action<Exception> onException = null)
+    {
+        try
+        {
+            return func.Invoke(arg);
         }
         catch (Exception ex)
         {

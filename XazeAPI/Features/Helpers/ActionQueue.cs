@@ -8,12 +8,21 @@
 using System;
 using System.Collections.Generic;
 using MEC;
+using Mirror;
+using XazeAPI.API.Extensions;
 
 namespace XazeAPI.Features.Helpers;
 
 public static class ActionQueue
 {
-    private static readonly Queue<Action> _actions = new();
+    private class QueuedAction(Action action, double delay = 0.0)
+    {
+        public Action Action { get; } = action;
+        public double Delay { get; } = delay;
+        public double StartTime { get; } = NetworkTime.time;
+    }
+    
+    private static readonly List<QueuedAction> _actions = new();
     private static CoroutineHandle _handle;
 
     public static void Init()
@@ -21,28 +30,31 @@ public static class ActionQueue
         _handle = Timing.RunCoroutine(DequeueCoroutine());
     }
 
-    public static void Add(Action action)
+    public static void Enqueue(Action action)
     {
-        _actions.Enqueue(action);
+        _actions.Add(new QueuedAction(action));
+    }
+
+    public static void Enqueue(Action action, double delay)
+    {
+        _actions.Add(new QueuedAction(action, delay));
     }
 
     private static IEnumerator<float> DequeueCoroutine()
     {
         while (true)
         {
-            if (!_actions.TryDequeue(out var queuedAction))
+            for (int i = _actions.Count - 1; i >= 0; i--)
             {
-                yield return Timing.WaitForOneFrame;
-                continue;
-            }
-
-            try
-            {
-                queuedAction();
-            }
-            catch (Exception ex)
-            {
-                Logging.Error(ex.ToString());
+                var queuedAction = _actions[i];
+                if (queuedAction.StartTime + queuedAction.Delay >= NetworkTime.time)
+                {
+                    yield return Timing.WaitForOneFrame;
+                    continue;
+                }
+                
+                queuedAction.Action.InvokeSafely();
+                _actions.RemoveAt(i);
             }
             
             yield return Timing.WaitForSeconds(0.05f);

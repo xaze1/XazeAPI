@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 
 namespace XazeAPI.Features;
 
+extern alias SystemNonSL;
+
 public class StopTimer(TimeSpan duration, Action callback = null)
 {
     private long _startTimestamp;
@@ -30,7 +32,7 @@ public class StopTimer(TimeSpan duration, Action callback = null)
         
         Stop();
         _finished = false;
-        _startTimestamp = Stopwatch.GetTimestamp();
+        _startTimestamp = SystemNonSL::System.Diagnostics.Stopwatch.GetTimestamp();
         IsRunning = true;
         cts = new CancellationTokenSource();
         _ = RunTimerAsync(cts.Token);
@@ -84,6 +86,6 @@ public class StopTimer(TimeSpan duration, Action callback = null)
             return TimeSpan.Zero;
         }
         
-        return TimeSpan.FromSeconds((Stopwatch.GetTimestamp() - _startTimestamp) / (double)Stopwatch.Frequency);
+        return TimeSpan.FromSeconds((SystemNonSL::System.Diagnostics.Stopwatch.GetTimestamp() - _startTimestamp) / (double)SystemNonSL::System.Diagnostics.Stopwatch.Frequency);
     }
 }

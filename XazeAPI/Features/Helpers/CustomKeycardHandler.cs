@@ -6,7 +6,6 @@
 // I <3 🦈s :3c
 
 using System;
-using System.ComponentModel;
 using System.Linq;
 using Interactables.Interobjects.DoorUtils;
 using InventorySystem;
@@ -14,6 +13,8 @@ using InventorySystem.Items.Keycards;
 
 namespace XazeAPI.Features.Helpers
 {
+    extern alias SystemNonSL;
+
     public static class CustomKeycardHandler
     {
         public static KeycardItem? GiveCustomKeycard(this ReferenceHub hub, ItemType keycardType, params object[] args)
@@ -25,7 +26,7 @@ namespace XazeAPI.Features.Helpers
 
             if (!keycard.Customizable)
             {
-                throw new InvalidEnumArgumentException(keycardType + " is not a valid custom keycard type!");
+                throw new SystemNonSL::System.ComponentModel.InvalidEnumArgumentException(keycardType + " is not a valid custom keycard type!");
             }
 
             int offset = 0;

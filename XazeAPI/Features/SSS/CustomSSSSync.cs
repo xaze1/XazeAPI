@@ -26,9 +26,8 @@ namespace XazeAPI.Features.SSS
                 
                 if (DefinedSettings.TryGetValue(plr.UserId, out var settings))
                     return;
-                
-                settings = new PlayerSettings(plr);
-                settings.DefaultPage.AddComponents(GlobalDefinedSettings);
+
+                settings = CreateWrapper(plr);
                 DefinedSettings[plr.UserId] = settings;
                 settings.SyncSettings();
             };
@@ -45,6 +44,35 @@ namespace XazeAPI.Features.SSS
                 NetworkServer.ReplaceHandler<SSSClientResponse>(ServerProcessClientResponseMsg);
             };
             StaticUnityMethods.OnUpdate += UpdateDefinedSettings;
+        }
+
+        private static PlayerSettings CreateWrapper(Player plr)
+        {
+            var settings = new PlayerSettings(plr);
+            settings.DefaultPage.AddComponents(GlobalDefinedSettings);
+            return settings;
+        }
+
+        public static bool TryGetSetting<T>(Player plr, int settingId, out T setting) where T : ServerSpecificSettingBase
+        {
+            var playerSetting = DefinedSettings.GetOrAdd(plr.UserId, () =>
+            {
+                var setting = CreateWrapper(plr);
+                setting.SyncSettings();
+                return setting;
+            });
+            
+            foreach (var settings in playerSetting.GetSettings())
+            {
+                if (settings.SettingId != settingId || settings.GetType() != typeof(T))
+                    continue;
+
+                setting = (T)settings;
+                return true;
+            }
+
+            setting = null;
+            return false;
         }
 
         /// <summary>
@@ -179,7 +207,7 @@ namespace XazeAPI.Features.SSS
             NetworkReaderPooled reader = NetworkReaderPool.Get(msg.Payload);
             foreach (var item in orAdd.Where(item => item.SettingId == msg.Id && !(item.GetType() != msg.SettingType)))
             {
-                ServerSpecificSettingsSync.ServerDeserializeClientResponse(hub, item, reader);
+                ServerSpecificSettingsSync.ServerDeserializeClientResponse(hub, item, ServerDeserializeClientResponse(hub, item, reader));
                 return;
             }
 
@@ -187,7 +215,28 @@ namespace XazeAPI.Features.SSS
             orAdd.Add(serverSpecificSettingBase);
             serverSpecificSettingBase.SetId(msg.Id, null);
             serverSpecificSettingBase.ApplyDefaultValues();
-            ServerSpecificSettingsSync.ServerDeserializeClientResponse(hub, serverSpecificSettingBase, reader);
+            ServerSpecificSettingsSync.ServerDeserializeClientResponse(hub, serverSpecificSettingBase, ServerDeserializeClientResponse(hub, serverSpecificSettingBase, reader));
+        }
+        
+        private static NetworkReaderPooled ServerDeserializeClientResponse(ReferenceHub sender, ServerSpecificSettingBase setting, NetworkReaderPooled reader)
+        {
+            if (setting.ResponseMode == ServerSpecificSettingBase.UserResponseMode.None || !DefinedSettings.TryGetValue(sender.authManager.UserId, out var playerSettings)) 
+                return reader;
+            
+            foreach (var customSetting in playerSettings.GetSettings())
+            {
+                if (customSetting.SettingId != setting.SettingId || customSetting.GetType() != setting.GetType())
+                    continue;
+                
+                var data = reader.ReadBytesSegment(reader.Remaining);
+                reader.Dispose();
+                using (var customReader = new NetworkReaderPooled(data))
+                    customSetting.DeserializeValue(customReader);
+
+                return new NetworkReaderPooled(data);
+            }
+
+            return reader;
         }
     }
 }

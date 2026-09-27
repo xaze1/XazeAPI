@@ -36,6 +36,9 @@
         <Reference Include="Mirror" Publicize="true">
           <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\Mirror.dll</HintPath>
         </Reference>
+        <Reference Include="mscorlib">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\mscorlib.dll</HintPath>
+        </Reference>
         <Reference Include="NAudio.Core, Version=2.2.1.0, Culture=neutral, PublicKeyToken=e279aa5131008a41, processorArchitecture=MSIL">
             <HintPath>..\packages\NAudio.Core.2.2.1\lib\netstandard2.0\NAudio.Core.dll</HintPath>
         </Reference>
@@ -54,13 +57,9 @@
         <Reference Include="RueI">
           <HintPath>..\..\..\OneDrive\Desktop\publiciser\LabApi-References\RueI.dll</HintPath>
         </Reference>
-        <Reference Include="SecretLabNAudio.Core, Version=2.0.0.0, Culture=neutral, processorArchitecture=Amd64">
-            <HintPath>..\packages\SecretLabNAudio.Core.2.0.0-alpha5\lib\net48\SecretLabNAudio.Core.dll</HintPath>
-        </Reference>
         <Reference Include="Snake" Publicize="true">
           <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\Snake.dll</HintPath>
         </Reference>
-        <Reference Include="System" />
         <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
             <HintPath>..\packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
         </Reference>
@@ -73,8 +72,9 @@
         <Reference Include="System.Drawing.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
             <HintPath>..\packages\System.Drawing.Primitives.4.3.0\lib\net45\System.Drawing.Primitives.dll</HintPath>
         </Reference>
-        <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-            <HintPath>..\packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
+        <Reference Include="System.Memory">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\System.Memory.dll</HintPath>
+          <Aliases>SystemMemory</Aliases>
         </Reference>
         <Reference Include="System.Net.Http">
             <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\System.Net.Http.dll</HintPath>
@@ -109,6 +109,9 @@
             <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
         </Reference>
         <Reference Include="WindowsBase" />
+        <Reference Include="System">
+          <Aliases>SystemNonSL</Aliases>
+        </Reference>
     </ItemGroup>
     <ItemGroup Label="Important References">
         <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild">
@@ -121,6 +124,9 @@
         </PackageReference>
         <PackageReference Include="Newtonsoft.Json">
             <Version>13.0.3</Version>
+        </PackageReference>
+        <PackageReference Include="SecretLabNAudio.Core">
+          <Version>2.1.2</Version>
         </PackageReference>
         <PackageReference Include="YamlDotNet">
             <Version>11.0.1</Version>

@@ -29,8 +29,8 @@ public class XazePlayer
     public static List<XazePlayer> List { get; } = new();
 
     public Player Player { get; private init; }
-    [CanBeNull] public ReferenceHub ReferenceHub => Player.ReferenceHub;
-    [CanBeNull] public GameObject GameObject => Player.GameObject;
+    public ReferenceHub ReferenceHub => Player.ReferenceHub;
+    public GameObject GameObject => Player.GameObject;
     public EffectStackManager EffectStacks => EffectStackManager.TryGet(Player, out var manager) ? manager : GameObject?.AddComponent<EffectStackManager>();
 
     public string Username
@@ -123,8 +123,8 @@ public class XazePlayer
             scpTickets.ModifyTickets(ReferenceHub, value);
         }
     }
-    
-    public PlayerBaseStat[] Stats { get; private set; }
+
+    public List<PlayerBaseStat> Stats { get; private init; } = new();
     private Dictionary<Type, object> CustomData { get; } = new();
     
     public Dictionary<RoleTypeId, int> GetSCPPreferences()

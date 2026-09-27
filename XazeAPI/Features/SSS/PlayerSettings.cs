@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using LabApi.Features.Wrappers;
+using NorthwoodLib.Pools;
 using UserSettings.ServerSpecific;
 using XazeAPI.Features.SSS.Components;
 
@@ -81,11 +82,22 @@ public class PlayerSettings
         page.AddComponents(components);
     }
 
-    public ServerSpecificSettingBase[] GetSettings()
+    public ServerSpecificSettingBase[] GetSettings(bool allPages = false)
     {
-        if (!Pages.TryGetValue(CurrentPage, out var page))
-            return [];
-        return page.GetSettings();
+        if (!allPages)
+        {
+            if (!Pages.TryGetValue(CurrentPage, out var page))
+                return [];
+            return page.GetSettings();
+        }
+
+        var settings = ListPool<ServerSpecificSettingBase>.Shared.Rent();
+        foreach (var page in Pages.Values)
+            settings.AddRange(page.GetSettings());
+
+        var array = settings.ToArray();
+        ListPool<ServerSpecificSettingBase>.Shared.Return(settings);
+        return array;
     }
 
     internal void Update()

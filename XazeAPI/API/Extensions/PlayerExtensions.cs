@@ -53,9 +53,9 @@ namespace XazeAPI.API.Extensions
                 return FollowingAerial<DelegateAerial>.Create(plr, new DelegateAerial(action, plr.Position));
             }
             
-            public FollowingAerial<StatusEffectAerial<T>> CreateAura<T>(int intensity, float duration) where T : StatusEffectBase
+            public FollowingAerial<StatusEffectAerial<T>> CreateAura<T>(float duration, int intensity = 1) where T : StatusEffectBase
             {
-                return FollowingAerial<StatusEffectAerial<T>>.Create(plr, new StatusEffectAerial<T>(plr.Position, intensity, duration));
+                return FollowingAerial<StatusEffectAerial<T>>.Create(plr, new StatusEffectAerial<T>(plr.Position, duration, intensity));
             }
 
             public PlayerLight<T> CreateLight<T>(T lightConfig) where T : LightConfigBase
@@ -248,10 +248,10 @@ namespace XazeAPI.API.Extensions
                 return FollowingAerial<DelegateAerial>.Create(plr, new DelegateAerial(action, plr.Position));
             }
             
-            public FollowingAerial<StatusEffectAerial<T>> CreateAura<T>(int intensity, float duration) where T : StatusEffectBase
+            public FollowingAerial<StatusEffectAerial<T>> CreateAura<T>(float duration, int intensity = 1) where T : StatusEffectBase
             {
                 var plr = Player.Get(hub);
-                return FollowingAerial<StatusEffectAerial<T>>.Create(plr, new StatusEffectAerial<T>(plr.Position, intensity, duration));
+                return FollowingAerial<StatusEffectAerial<T>>.Create(plr, new StatusEffectAerial<T>(plr.Position, duration, intensity));
             }
 
             public PlayerLight<T> CreateLight<T>(T lightConfig) where T : LightConfigBase
@@ -560,7 +560,7 @@ namespace XazeAPI.API.Extensions
             public bool HasPermission(string perm, out string response)
             {
                 response = "You don't have permissions to execute this command.\nRequired permission: " + perm;
-                return sender.HasPermission(perm);
+                return sender.HasPermissions(perm);
             }
             
             public bool HasPermissions(out string response, params string[] perms)
