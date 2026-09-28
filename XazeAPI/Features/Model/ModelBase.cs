@@ -37,6 +37,8 @@ public abstract class ModelBase
     
     private readonly List<ModelPart> _parts = new();
 
+    protected void WithPrimitive(Action<ModelPart<PrimitiveObjectToy>> builderAction) => WithPart(builderAction);
+    protected void WithLight(Action<ModelPart<LightSourceToy>> builderAction) => WithPart(builderAction);
     protected void WithPart<T>(Action<ModelPart<T>> builderAction) where T : AdminToy
     {
         var part = ModelPart<T>.Create(MainPart.transform, Vector3.zero, Quaternion.identity, Vector3.one, false);

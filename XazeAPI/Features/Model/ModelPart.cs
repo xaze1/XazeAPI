@@ -46,24 +46,29 @@ public class ModelPart<T> : ModelPart where T : AdminToy
         Part.Destroy();
     }
 
+    public ModelPart<T> WithPosition(float x, float y, float z) => WithPosition(new Vector3(x, y, z));
     public ModelPart<T> WithPosition(Vector3 position)
     {
         Position = position;
         return this;
     }
 
+    public ModelPart<T> WithRotation(float x, float y, float z) => WithRotation(new Vector3(x, y, z));
+    public ModelPart<T> WithRotation(Vector3 euler) => WithRotation(Quaternion.Euler(euler));
     public ModelPart<T> WithRotation(Quaternion rotation)
     {
         Rotation = rotation;
         return this;
     }
 
+    public ModelPart<T> WithScale(float x, float y, float z) => WithScale(new Vector3(x, y, z));
     public ModelPart<T> WithScale(Vector3 scale)
     {
         Scale = scale;
         return this;
     }
 
+    public ModelPart<T> WithParent<Toy>(ModelPart<Toy> part) where Toy : AdminToy => WithParent(part.Part.Transform);
     public ModelPart<T> WithParent(AdminToy parent) => WithParent(parent.Transform);
     public ModelPart<T> WithParent(GameObject parent) => WithParent(parent.transform);
     public ModelPart<T> WithParent(Transform parent)
@@ -71,7 +76,6 @@ public class ModelPart<T> : ModelPart where T : AdminToy
         Parent = parent;
         return this;
     }
-
     
     public static ModelPart<T> Create(Transform parent, bool spawn = true) => Create(parent, Vector3.zero, Quaternion.identity, Vector3.one, spawn);
     public static ModelPart<T> Create(Transform parent, Vector3 position, bool spawn = true) => Create(parent, position, Quaternion.identity, Vector3.one, spawn);
