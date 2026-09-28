@@ -7,11 +7,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using LabApi.Features.Wrappers;
-using Mirror;
 using UnityEngine;
-using XazeAPI.API.Extensions;
 
 namespace XazeAPI.Features.Model;
 
@@ -19,7 +16,12 @@ public class ModelPart<T> : ModelPart where T : AdminToy
 {
     public uint Id { get; internal set; }
     public T Part { get; init; }
-    public Transform Parent => Part.Parent;
+
+    public Transform Parent
+    {
+        get => Part.Parent;
+        set => Part.Parent = value;
+    }
     
     public Vector3 Position
     {
@@ -43,6 +45,33 @@ public class ModelPart<T> : ModelPart where T : AdminToy
             return;
         Part.Destroy();
     }
+
+    public ModelPart<T> WithPosition(Vector3 position)
+    {
+        Position = position;
+        return this;
+    }
+
+    public ModelPart<T> WithRotation(Quaternion rotation)
+    {
+        Rotation = rotation;
+        return this;
+    }
+
+    public ModelPart<T> WithScale(Vector3 scale)
+    {
+        Scale = scale;
+        return this;
+    }
+
+    public ModelPart<T> WithParent(AdminToy parent) => WithParent(parent.Transform);
+    public ModelPart<T> WithParent(GameObject parent) => WithParent(parent.transform);
+    public ModelPart<T> WithParent(Transform parent)
+    {
+        Parent = parent;
+        return this;
+    }
+
     
     public static ModelPart<T> Create(Transform parent, bool spawn = true) => Create(parent, Vector3.zero, Quaternion.identity, Vector3.one, spawn);
     public static ModelPart<T> Create(Transform parent, Vector3 position, bool spawn = true) => Create(parent, position, Quaternion.identity, Vector3.one, spawn);
