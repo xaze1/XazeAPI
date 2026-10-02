@@ -67,7 +67,7 @@ public class APILoader : Plugin
         
         SpeakerLoader.OnTrackSelecting += (speaker) =>
         {
-            Logging.Debug("Selecting Track: " + speaker);
+            Logging.Debug("Selecting Track: " + speaker.gameObject.name);
         };
         
         ReferenceHub.OnPlayerAdded += ctx => Timing.CallDelayed(0.1f, () => SetupPlayer(ctx));

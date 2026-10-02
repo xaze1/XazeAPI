@@ -6,12 +6,14 @@
 // // I <3 🦈s :3c
 
 using System.Collections.Generic;
+using JetBrains.Annotations;
+using XazeAPI.API.Extensions;
 
 namespace XazeAPI.Features.Model.Animating;
 
-public class AnimationTransition(string sourceAnimation, string targetAnimation, double duration = 0.2)
+public class AnimationTransition(string targetAnimation, double duration = 0.2, string sourceAnimation = null)
 {
-    public string SourceAnimation { get; } = sourceAnimation;
+    [CanBeNull] public string SourceAnimation { get; } = sourceAnimation;
     public string TargetAnimation { get; } = targetAnimation;
     public double TransitionDuration { get; } = duration;
     
@@ -47,10 +49,10 @@ public class AnimationTransition(string sourceAnimation, string targetAnimation,
 
     public void Evaluate()
     {
-        if (_controller.CurrentAnimationName != SourceAnimation)
+        if (!SourceAnimation.IsNullOrWhiteSpace() && _controller.CurrentAnimationName != SourceAnimation)
             return;
         
-        var sourceAnim = _controller.GetAnimation(SourceAnimation);
+        var sourceAnim = _controller.GetAnimation(_controller.CurrentAnimationName);
         if (sourceAnim == null)
             return;
         

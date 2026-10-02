@@ -6,6 +6,7 @@
 // // I <3 🦈s :3c
 
 using System.IO;
+using System.Linq;
 using LabApi.Features.Wrappers;
 using LabApi.Loader.Features.Paths;
 using SecretLabNAudio.Core;
@@ -15,7 +16,7 @@ namespace XazeAPI.API.AudioCore.Speakers;
 
 public static class SpeakerManager
 {
-    public static SpeakerLoader PlayLocal(Player Target, string songName)
+    public static SpeakerLoader PlayLocal(Player Target, string songName, params string[] subpath)
     {
         if (Target.GameObject == null)
         {
@@ -23,12 +24,12 @@ public static class SpeakerManager
         }
         
         var speaker = Target.GameObject.AddComponent<SpeakerLoader>();
-        speaker.Play(Path.Combine(AudioManager.AudioPath, songName));
+        Play(speaker, songName, subpath);
 
         return speaker;
     }
     
-    public static SpeakerLoader PlayLocal(Vector3 pos, string songName)
+    public static SpeakerLoader PlayLocal(Vector3 pos, string songName, params string[] subpath)
     {
         var gameObject = new GameObject("XazeApi-Speaker-LocalSound")
         {
@@ -40,21 +41,27 @@ public static class SpeakerManager
 
         var speaker = gameObject.AddComponent<SpeakerLoader>();
         speaker.Settings = SpeakerSettings.Default;
-        speaker.Play(Path.Combine(AudioManager.AudioPath, songName));
+        Play(speaker, songName, subpath);
         
         return speaker;
     }
     
-    public static SpeakerLoader PlayGlobal(string songName)
+    public static SpeakerLoader PlayGlobal(string songName, params string[] subpath)
     {
         var speaker = new GameObject().AddComponent<SpeakerLoader>();
-        speaker.Play(Path.Combine(AudioManager.AudioPath, songName));
+        Play(speaker, songName, subpath);
 
         return speaker;
     }
     
-    public static void Play(SpeakerLoader speaker, string songName)
+    public static void Play(SpeakerLoader speaker, string songName, params string[] subpath)
     {
-        speaker.Play(Path.Combine(AudioManager.AudioPath, songName));
+        speaker.Play(Path.Combine(
+            new[] { AudioManager.AudioPath }
+                .Concat(subpath)
+                .Append(songName)
+                .ToArray()
+            )
+        );
     }
 }

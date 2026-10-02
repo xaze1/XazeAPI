@@ -37,7 +37,6 @@ public class PrimitiveState(PrimitiveObjectToy primitive) : ObjectState(primitiv
             Primitive.Color = (Color)Curves[nameof(Primitive.Color)].Interpolate(colorA, colorB, blendTime);
     }
     
-    
     public PrimitiveState WithColor(AnimationCurve<Color> curve)
     {
         Curves["Color"] = curve;

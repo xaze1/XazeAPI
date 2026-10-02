@@ -8,12 +8,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using JetBrains.Annotations;
 using LabApi.Features.Wrappers;
 using SecretLabNAudio.Core;
 using SecretLabNAudio.Core.Extensions;
 using SecretLabNAudio.Core.Pools;
-using SecretLabNAudio.Core.SendEngines;
 using UnityEngine;
 using XazeAPI.API.Stats;
 using XazeAPI.API.Structures;
@@ -92,6 +90,12 @@ public class SpeakerLoader : MonoBehaviour
     public SpeakerLoader SetPersonalization(Func<Player, SpeakerSettings?, SpeakerSettings> personalization)
     {
         Base.WithLivePersonalizedSendEngine((player, current) => personalization(player, current),SendEngine);
+        return this;
+    }
+
+    public SpeakerLoader DestroyOnEnd()
+    {
+        Base.Ended += Destroy;
         return this;
     }
 

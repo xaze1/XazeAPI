@@ -18,8 +18,8 @@ namespace XazeAPI.Features.Model.Animating;
 public class AnimationController
 {
     public event Action<string, object> ParameterChanged;
-    
-    public string CurrentAnimationName { get; private set; }
+
+    public string CurrentAnimationName { get; private set; } = string.Empty;
     
     public Dictionary<string, Animation> Animations { get; } = new();
     public Dictionary<string, object> Parameters { get; } = new();
@@ -49,7 +49,18 @@ public class AnimationController
     [CanBeNull]
     public Animation GetAnimation(string animationName)
     {
+        if (animationName.IsNullOrWhiteSpace())
+            return null;
+        
         return Animations.GetValueOrDefault(animationName);
+    }
+    
+    public bool IsPlaying(string animationName)
+    {
+        var animation = GetAnimation(animationName);
+        if (animation == null)
+            return false;
+        return animation.IsPlaying;
     }
     
     public void AddAnimation(string animationName, Animation animation)
@@ -73,6 +84,16 @@ public class AnimationController
         CurrentAnimationName = animationName;
         animation.Play();
         animation.OnComplete += HandleAnimationComplete;
+    }
+
+    public void PlayIdle(string animationName)
+    {
+        if (!Animations.TryGetValue(animationName, out var idle))
+            return;
+        
+        if (IsPlaying(CurrentAnimationName) || idle.IsPlaying)
+            return;
+        idle.Play();
     }
 
     public void StopAnimation(string animationName)
