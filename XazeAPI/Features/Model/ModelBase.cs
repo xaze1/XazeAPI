@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using LabApi.Features.Wrappers;
 using Mirror;
 using UnityEngine;
 using XazeAPI.API.Extensions;
@@ -39,6 +40,22 @@ public abstract class ModelBase
     
     private readonly List<ModelPart> _parts = new();
 
+    protected ModelBase WithPrimitive(Action<PrimitivePart> builderAction, out PrimitiveObjectToy toy) => WithPart(builderAction, out toy);
+    protected ModelBase WithLight(Action<LightPart> builderAction, out LightSourceToy toy) => WithPart(builderAction, out toy);
+    protected ModelBase WithText(Action<TextPart> builderAction, out TextToy toy) => WithPart(builderAction, out toy);
+    protected ModelBase WithInteractable(Action<InteractablePart> builderAction, out InteractableToy toy) => WithPart(builderAction, out toy);
+    protected ModelBase WithWaypoint(Action<WaypointPart> builderAction, out WaypointToy toy) => WithPart(builderAction, out toy);
+    protected ModelBase WithPart<T, Toy>(Action<T> builderAction, out Toy toy) where T : ModelPart where Toy : AdminToy
+    {
+        var part = Activator.CreateInstance<T>();
+        builderAction.InvokeSafely(part);
+        part.Spawn();
+        _parts.Add(part);
+        toy = (Toy)part.Part;
+        toy.Parent ??= MainPart.transform;
+        return this;
+    }
+
     protected ModelBase WithPrimitive(Action<PrimitivePart> builderAction) => WithPart(builderAction);
     protected ModelBase WithLight(Action<LightPart> builderAction) => WithPart(builderAction);
     protected ModelBase WithText(Action<TextPart> builderAction) => WithPart(builderAction);
@@ -50,6 +67,16 @@ public abstract class ModelBase
         builderAction.InvokeSafely(part);
         part.Spawn();
         _parts.Add(part);
+        part.Part.Parent ??= MainPart.transform;
+        return this;
+    }
+
+    protected ModelBase WithMainPart<T>(Action<T> builderAction) where T : ModelPart
+    {
+        var part = Activator.CreateInstance<T>();
+        builderAction.InvokeSafely(part);
+        part.Spawn();
+        MainPart = part.Part.GameObject;
         return this;
     }
 
@@ -63,10 +90,19 @@ public abstract class ModelBase
     public void Spawn(Vector3 position, Quaternion rotation)
     {
         IsDestroyed = false;
-        OnSpawn();
+        OnSpawn(position, rotation);
     }
 
-    protected abstract void OnSpawn();
+    public void Spawn(GameObject mainPart) => Spawn(mainPart, Vector3.zero, Quaternion.identity);
+    public void Spawn(GameObject mainPart, Vector3 position) => Spawn(mainPart, position, Quaternion.identity);
+    public void Spawn(GameObject mainPart, Vector3 position, Quaternion rotation)
+    {
+        IsDestroyed = false;
+        MainPart = mainPart;
+        OnSpawn(position, rotation);
+    }
+
+    protected abstract void OnSpawn(Vector3 position, Quaternion rotation);
     protected abstract void OnDestroy();
 
     public void Destroy()
