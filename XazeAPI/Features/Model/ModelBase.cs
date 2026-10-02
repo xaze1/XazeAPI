@@ -52,6 +52,8 @@ public abstract class ModelBase
         part.Spawn();
         _parts.Add(part);
         toy = (Toy)part.Part;
+        if (MainPart == null)
+            return this;
         toy.Parent ??= MainPart.transform;
         return this;
     }
@@ -67,6 +69,8 @@ public abstract class ModelBase
         builderAction.InvokeSafely(part);
         part.Spawn();
         _parts.Add(part);
+        if (MainPart == null)
+            return this;
         part.Part.Parent ??= MainPart.transform;
         return this;
     }
